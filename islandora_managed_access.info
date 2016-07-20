@@ -2,6 +2,6 @@ name = Islandora
 description = "Create and manage temporary users for restricted objects."
 dependencies[] = islandora
 dependencies[] = entity
-package = Islandora Solution Packs
+package = Islandora Tools
 version = 7.x-dev
 core = 7.x
