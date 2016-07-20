@@ -1,4 +1,4 @@
-name = Islandora
+name = Islandora Managed Access
 description = "Create and manage temporary users for restricted objects."
 dependencies[] = islandora
 dependencies[] = entity
