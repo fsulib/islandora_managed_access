@@ -15,7 +15,7 @@ function islandora_managed_access_schema() {
     'description' => 'The base table for the Islandora Managed Access Profile entity',
     'fields' => array(
       'id' => array(
-        'description' => 'Primary key of the Islandora Managed Access Profile entity'
+        'description' => 'Primary key of the Islandora Managed Access Profile entity',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -33,7 +33,7 @@ function islandora_managed_access_schema() {
         'not null' => TRUE,
       ),
       'created_at' => array(
-        'description' => 'Date and time the profile was created'
+        'description' => 'Date and time the profile was created',
         'type' => 'int',
         'length' => 10,
         'not null' => TRUE,
@@ -52,7 +52,7 @@ function islandora_managed_access_schema() {
     'description' => 'The base table for the Islandora Managed Access Object entity',
     'fields' => array(
       'id' => array(
-        'description' => 'Primary key of the Islandora Managed Access Object entity'
+        'description' => 'Primary key of the Islandora Managed Access Object entity',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -77,7 +77,7 @@ function islandora_managed_access_schema() {
     'description' => 'The base table for the Islandora Managed Access User entity',
     'fields' => array(
       'id' => array(
-        'description' => 'Primary key of the Islandora Managed Access User entity'
+        'description' => 'Primary key of the Islandora Managed Access User entity',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,

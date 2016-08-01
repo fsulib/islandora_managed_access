@@ -16,7 +16,7 @@ function islandora_managed_access_menu() {
     'page callback' => 'islandora_managed_access_test_page',
     'access callback' => TRUE,
     'menu' => 'navigation',
-  )
+  );
 }
 
 function islandora_managed_access_test_page() {
@@ -28,7 +28,7 @@ function islandora_managed_access_test_page() {
 /**
  * Implements hook_entity_info().
  */
-function islandora_managed_access_entity_info {
+function islandora_managed_access_entity_info() {
   $info = array();
 
   $info['managed_access_profile'] = array(
