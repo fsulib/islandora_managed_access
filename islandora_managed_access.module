@@ -9,20 +9,6 @@
  * Implements hook_menu().
  */
 function islandora_managed_access_menu() {
-  $items = array();
-
-  $items['test'] = array(
-    'title' => 'Entity Testing',
-    'page callback' => 'islandora_managed_access_test_page',
-    'access callback' => TRUE,
-    'menu' => 'navigation',
-  );
-}
-
-function islandora_managed_access_test_page() {
-  $test = entity_load('managed_access_profile', array(1));
-  print_r($test);
-  drupal_exit;
 }
 
 /**
