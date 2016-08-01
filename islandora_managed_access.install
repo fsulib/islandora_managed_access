@@ -6,9 +6,97 @@
  */
 
 /**
+ * Implements hook_schema().
+ */
+function islandora_managed_access_schema() {
+  $schema = array();
+
+  $schema['islandora_managed_access_profile'] = array(
+    'description' => 'The base table for the Islandora Managed Access Profile entity',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the Islandora Managed Access Profile entity'
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'hname' => array(
+        'description' => 'Human readable name of profile',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'mname' => array(
+        'description' => 'Machine name of profile',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'created_at' => array(
+        'description' => 'Date and time the profile was created'
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+      ),
+      'updated_at' => array(
+        'description' => 'Date and time the profile was last updated',
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['islandora_managed_access_object'] = array(
+    'description' => 'The base table for the Islandora Managed Access Object entity',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the Islandora Managed Access Object entity'
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'pid' => array(
+        'description' => 'Islandora PID of the object to be managed',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'profile' => array(
+        'description' => 'Machine name of associated Managed Access Profile',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['islandora_managed_access_user'] = array(
+    'description' => 'The base table for the Islandora Managed Access User entity',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key of the Islandora Managed Access User entity'
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'ID of the Drupal User created with this entity',
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
+
+/**
  * Implements hook_install().
- *
- * @see islandora_book_islandora_required_objects()
  */
 function islandora_managed_access_install() {
 }
@@ -18,7 +106,6 @@ function islandora_managed_access_install() {
  */
 function islandora_managed_access_uninstall() {
   $variables = array(
-    #'islandora_scholar_use_standard_metadata_display',
   );
   array_walk($variables, 'variable_del');
 }

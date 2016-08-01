@@ -9,4 +9,49 @@
  * Implements hook_menu().
  */
 function islandora_managed_access_menu() {
+  $items = array();
+
+  $items['test'] = array(
+    'title' => 'Entity Testing',
+    'page callback' => 'islandora_managed_access_test_page',
+    'access callback' => TRUE,
+    'menu' => 'navigation',
+  )
+}
+
+function islandora_managed_access_test_page() {
+  $test = entity_load('managed_access_profile', array(1));
+  print_r($test);
+  drupal_exit;
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function islandora_managed_access_entity_info {
+  $info = array();
+
+  $info['managed_access_profile'] = array(
+    'label' => t('Managed Access Profile'),
+    'base table' => 'islandora_managed_access_profile',
+    'entity keys' => array(
+      'id' => 'id',
+    ),
+  );
+  $info['managed_access_object'] = array(
+    'label' => t('Managed Access Object'),
+    'base table' => 'islandora_managed_access_object',
+    'entity keys' => array(
+      'id' => 'id',
+    ),
+  );
+  $info['managed_access_user'] = array(
+    'label' => t('Managed Access User'),
+    'base table' => 'islandora_managed_access_user',
+    'entity keys' => array(
+      'id' => 'id',
+    ),
+  );
+
+  return $info;
 }
