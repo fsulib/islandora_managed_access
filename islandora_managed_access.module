@@ -17,21 +17,21 @@ function islandora_managed_access_menu() {
 function islandora_managed_access_entity_info() {
   $info = array();
 
-  $info['managed_access_profile'] = array(
+  $info['islandora_managed_access_profile'] = array(
     'label' => t('Managed Access Profile'),
     'base table' => 'islandora_managed_access_profile',
     'entity keys' => array(
       'id' => 'id',
     ),
   );
-  $info['managed_access_object'] = array(
+  $info['islandora_managed_access_object'] = array(
     'label' => t('Managed Access Object'),
     'base table' => 'islandora_managed_access_object',
     'entity keys' => array(
       'id' => 'id',
     ),
   );
-  $info['managed_access_user'] = array(
+  $info['islandora_managed_access_user'] = array(
     'label' => t('Managed Access User'),
     'base table' => 'islandora_managed_access_user',
     'entity keys' => array(

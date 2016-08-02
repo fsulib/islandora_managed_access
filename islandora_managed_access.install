@@ -12,10 +12,10 @@ function islandora_managed_access_schema() {
   $schema = array();
 
   $schema['islandora_managed_access_profile'] = array(
-    'description' => 'The base table for the Islandora Managed Access Profile entity',
+    'description' => 'The base table for the islandora managed access profile entity',
     'fields' => array(
       'id' => array(
-        'description' => 'Primary key of the Islandora Managed Access Profile entity',
+        'description' => 'Primary key of the islandora managed access profile entity',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -35,13 +35,46 @@ function islandora_managed_access_schema() {
       'created_at' => array(
         'description' => 'Date and time the profile was created',
         'type' => 'int',
-        'length' => 10,
         'not null' => TRUE,
       ),
       'updated_at' => array(
         'description' => 'Date and time the profile was last updated',
         'type' => 'int',
-        'length' => 10,
+        'not null' => TRUE,
+      ),
+      'role' => array(
+        'description' => 'Drupal role associated with this profile',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'lifetime' => array(
+        'description' => 'Length in days before an associated user account expires',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'ip_whitelist' => array(
+        'description' => 'List of IPs that can bypass the managed access system',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ),
+      'justification_info' => array(
+        'description' => 'Blurb explaining why objects are managed access',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'usage_info' => array(
+        'description' => 'Blurb explaining conditions and terms of use',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'contact_info' => array(
+        'description' => 'Blurb explainining how to get more information',
+        'type' => 'text',
+        'size' => 'big',
         'not null' => TRUE,
       ),
     ),
@@ -49,10 +82,10 @@ function islandora_managed_access_schema() {
   );
 
   $schema['islandora_managed_access_object'] = array(
-    'description' => 'The base table for the Islandora Managed Access Object entity',
+    'description' => 'The base table for the islandora managed access object entity',
     'fields' => array(
       'id' => array(
-        'description' => 'Primary key of the Islandora Managed Access Object entity',
+        'description' => 'Primary key of the islandora managed access object entity',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -63,29 +96,90 @@ function islandora_managed_access_schema() {
         'length' => '255',
         'not null' => TRUE,
       ),
+      'created_at' => array(
+        'description' => 'Date and time the object became managed',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'updated_at' => array(
+        'description' => 'Date and time the object was last updated',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
       'profile' => array(
-        'description' => 'Machine name of associated Managed Access Profile',
+        'description' => 'Machine name of associated managed access profile',
         'type' => 'varchar',
         'length' => '255',
         'not null' => TRUE,
+      ),
+      'pid_whitelist' => array(
+        'description' => 'Whitelist of PIDs for hierarchichal objects that may bypass managed access',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => FALSE,
       ),
     ),
     'primary key' => array('id'),
   );
 
   $schema['islandora_managed_access_user'] = array(
-    'description' => 'The base table for the Islandora Managed Access User entity',
+    'description' => 'The base table for the islandora managed access user entity',
     'fields' => array(
       'id' => array(
-        'description' => 'Primary key of the Islandora Managed Access User entity',
+        'description' => 'Primary key of the islandora managed access user entity',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'uid' => array(
-        'description' => 'ID of the Drupal User created with this entity',
+        'description' => 'ID of the Drupal user created with this entity',
         'type' => 'int',
         'length' => 10,
+        'not null' => TRUE,
+      ),
+      'created_at' => array(
+        'description' => 'Date and time the user was created',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'updated_at' => array(
+        'description' => 'Date and time the user was last updated',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'refreshed_at' => array(
+        'description' => 'Date and time the user was last refreshed',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'first_name' => array(
+        'description' => 'First name of managed access user',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'middle_name' => array(
+        'description' => 'Middle name of managed access user',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'last_name' => array(
+        'description' => 'Last name of managed access user',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'institution' => array(
+        'description' => 'Institution that user is associated with',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'request_info' => array(
+        'description' => 'Blurb from user about why they want access to managed object',
+        'type' => 'text',
+        'size' => 'big',
         'not null' => TRUE,
       ),
     ),
