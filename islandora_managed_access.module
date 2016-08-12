@@ -20,9 +20,14 @@ function islandora_managed_access_entity_info() {
   $info['islandora_managed_access_profile'] = array(
     'label' => t('Managed Access Profile'),
     'base table' => 'islandora_managed_access_profile',
-    'entity keys' => array(
-      'id' => 'id',
+    'entity keys' => array('id' => 'id'),
+    'admin ui' => array(
+      'path' => 'admin/islandora/tools/managed_access',
+      //'menu wildcard' => '%videoentity',
+      'file' => 'admin.form.inc',
     ),
+    'module' => 'islandora_managed_access',
+    'access callback' => 'islandora_managed_access_admin_access_callback',
   );
   $info['islandora_managed_access_object'] = array(
     'label' => t('Managed Access Object'),
@@ -40,4 +45,25 @@ function islandora_managed_access_entity_info() {
   );
 
   return $info;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function islandora_managed_access_permission() {
+  return array(
+    'administer managed access configuration' => array(
+      'title' => t('Administer Managed Access configurations'),
+    ),
+  );
+}
+
+/**
+ * Check access permissions for Managed Access configurations.
+ */
+function islandora_managed_access_admin_access_callback($op, $maentity = NULL, $account = NULL) {
+  if (user_access('administer managed access configuration', $account)) {
+    return TRUE;
+  }
+  return FALSE;
 }
