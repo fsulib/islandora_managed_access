@@ -152,20 +152,8 @@ function islandora_managed_access_schema() {
         'type' => 'int',
         'not null' => TRUE,
       ),
-      'first_name' => array(
-        'description' => 'First name of managed access user',
-        'type' => 'varchar',
-        'length' => '255',
-        'not null' => TRUE,
-      ),
-      'middle_name' => array(
-        'description' => 'Middle name of managed access user',
-        'type' => 'varchar',
-        'length' => '255',
-        'not null' => FALSE,
-      ),
-      'last_name' => array(
-        'description' => 'Last name of managed access user',
+      'name' => array(
+        'description' => 'Name of managed access user',
         'type' => 'varchar',
         'length' => '255',
         'not null' => TRUE,

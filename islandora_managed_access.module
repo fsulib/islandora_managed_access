@@ -9,6 +9,18 @@
  * Implements hook_menu().
  */
 function islandora_managed_access_menu() {
+  $items = array();
+  
+  $items['admin/islandora/tools/managed_access'] = array(
+    'title' => 'Islandora Managed Access',
+    'description' => 'Configure Managed Access settings.',
+    'access arguments' => array('administer managed access configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'drupal_goto',
+    'page arguments' => array('admin/islandora/tools/managed_access/profiles'),
+  ); 
+
+  return $items;
 }
 
 /**
@@ -20,11 +32,16 @@ function islandora_managed_access_entity_info() {
   $info['islandora_managed_access_profile'] = array(
     'label' => t('Managed Access Profile'),
     'base table' => 'islandora_managed_access_profile',
-    'entity keys' => array('id' => 'id'),
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'hname',
+    ),
+    'entity class' => 'IslandoraManagedAccessProfileEntity',
+    'controller class' => 'IslandoraManagedAccessProfileEntityController',
     'admin ui' => array(
-      'path' => 'admin/islandora/tools/managed_access',
-      //'menu wildcard' => '%videoentity',
-      'file' => 'admin.form.inc',
+      'path' => 'admin/islandora/tools/managed_access/profiles',
+      'controller class' => 'IslandoraManagedAccessProfileEntityUIController',
+      'file' => 'includes/admin.form.inc',
     ),
     'module' => 'islandora_managed_access',
     'access callback' => 'islandora_managed_access_admin_access_callback',
@@ -34,14 +51,34 @@ function islandora_managed_access_entity_info() {
     'base table' => 'islandora_managed_access_object',
     'entity keys' => array(
       'id' => 'id',
+      'label' => 'pid',
     ),
+    'entity class' => 'IslandoraManagedAccessObjectEntity',
+    'controller class' => 'IslandoraManagedAccessObjectEntityController',
+    'admin ui' => array(
+      'path' => 'admin/islandora/tools/managed_access/objects',
+      'controller class' => 'IslandoraManagedAccessObjectEntityUIController',
+      'file' => 'includes/admin.form.inc',
+    ),
+    'module' => 'islandora_managed_access',
+    'access callback' => 'islandora_managed_access_admin_access_callback',
   );
   $info['islandora_managed_access_user'] = array(
     'label' => t('Managed Access User'),
     'base table' => 'islandora_managed_access_user',
     'entity keys' => array(
       'id' => 'id',
+      'label' => 'name'
     ),
+    'entity class' => 'IslandoraManagedAccessUserEntity',
+    'controller class' => 'IslandoraManagedAccessUserEntityController',
+    'admin ui' => array(
+      'path' => 'admin/islandora/tools/managed_access/users',
+      'controller class' => 'IslandoraManagedAccessUserEntityUIController',
+      'file' => 'includes/admin.form.inc',
+    ),
+    'module' => 'islandora_managed_access',
+    'access callback' => 'islandora_managed_access_admin_access_callback',
   );
 
   return $info;
@@ -66,4 +103,205 @@ function islandora_managed_access_admin_access_callback($op, $maentity = NULL, $
     return TRUE;
   }
   return FALSE;
+}
+
+/**
+ * Entity class for MA Profiles
+ */ 
+class IslandoraManagedAccessProfileEntity extends Entity {
+}
+
+/**
+ * Entity Controller class for MA Profiles
+ */
+class IslandoraManagedAccessProfileEntityController extends EntityAPIController {
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    return parent::save($entity, $transaction);
+  }
+}
+
+/**
+ * Entity UI Controller class for MA Profiles
+ */
+class IslandoraManagedAccessProfileEntityUIController extends EntityDefaultUIController {
+
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $items[$this->path]['type'] = MENU_LOCAL_TASK;
+    $items[$this->path]['weight'] = -2;
+    return $items;
+  }
+
+  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    $header = $additional_header;
+    array_unshift($header, t('Name'));
+    if (!empty($this->entityInfo['exportable'])) {
+      $header[] = t('Status');
+    }
+    $header[] = array('data' => t('Operations'), 'colspan' => $this->operationCount());
+    return $header;
+  }
+
+  public function overviewTable($conditions = array()) {
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', $this->entityType);
+    foreach ($conditions as $key => $value) {
+      $query->propertyCondition($key, $value);
+    }
+    if ($this->overviewPagerLimit) {
+      $query->pager($this->overviewPagerLimit);
+    }
+    $results = $query->execute();
+    $ids = isset($results[$this->entityType]) ? array_keys($results[$this->entityType]) : array();
+    $entities = $ids ? entity_load($this->entityType, $ids) : array();
+    ksort($entities);
+    $rows = array();
+    foreach ($entities as $entity) {
+      $additional_cols = array($entity->mname, $entity->role);
+      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
+    }
+
+    $additional_headers = array('Machine Name', 'Associated Role');
+    $render = array(
+      '#theme' => 'table',
+      '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
+      '#rows' => $rows,
+      '#empty' => t('None.'),
+    );
+    return $render;
+  }
+}
+
+/**
+ * Entity class for MA Objects
+ */
+class IslandoraManagedAccessObjectEntity extends Entity {
+}
+
+/**
+ * Entity Controller class for MA Objects
+ */
+class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    return parent::save($entity, $transaction);
+  }
+}
+
+/**
+ * Entity UI Controller class for MA Objects
+ */
+class IslandoraManagedAccessObjectEntityUIController extends EntityDefaultUIController {
+
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $items[$this->path]['type'] = MENU_LOCAL_TASK;
+    $items[$this->path]['weight'] = -1;
+    return $items;
+  }
+
+  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    $header = $additional_header;
+    array_unshift($header, t('PID'));
+    if (!empty($this->entityInfo['exportable'])) {
+      $header[] = t('Status');
+    }
+    $header[] = array('data' => t('Operations'), 'colspan' => $this->operationCount());
+    return $header;
+  }
+
+  public function overviewTable($conditions = array()) {
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', $this->entityType);
+    foreach ($conditions as $key => $value) {
+      $query->propertyCondition($key, $value);
+    }
+    if ($this->overviewPagerLimit) {
+      $query->pager($this->overviewPagerLimit);
+    }
+    $results = $query->execute();
+    $ids = isset($results[$this->entityType]) ? array_keys($results[$this->entityType]) : array();
+    $entities = $ids ? entity_load($this->entityType, $ids) : array();
+    ksort($entities);
+    $rows = array();
+    foreach ($entities as $entity) {
+      $additional_cols = array($entity->profile);
+      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
+    }
+
+    $additional_headers = array('Associated Profile');
+    $render = array(
+      '#theme' => 'table',
+      '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
+      '#rows' => $rows,
+      '#empty' => t('None.'),
+    );
+    return $render;
+  }
+}
+
+/**
+ * Entity class for MA Users
+ */
+class IslandoraManagedAccessUserEntity extends Entity {
+}
+
+/**
+ * Entity Controller class for MA Users
+ */
+class IslandoraManagedAccessUserEntityController extends EntityAPIController {
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    return parent::save($entity, $transaction);
+  }
+}
+
+/**
+ * Entity UI Controller class for MA Users
+ */
+class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIController {
+
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $items[$this->path]['type'] = MENU_LOCAL_TASK;
+    $items[$this->path]['weight'] = 0;
+    return $items;
+  }
+
+  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    $header = $additional_header;
+    array_unshift($header, t('Name'));
+    if (!empty($this->entityInfo['exportable'])) {
+      $header[] = t('Status');
+    }
+    $header[] = array('data' => t('Operations'), 'colspan' => $this->operationCount());
+    return $header;
+  }
+
+  public function overviewTable($conditions = array()) {
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', $this->entityType);
+    foreach ($conditions as $key => $value) {
+      $query->propertyCondition($key, $value);
+    }
+    if ($this->overviewPagerLimit) {
+      $query->pager($this->overviewPagerLimit);
+    }
+    $results = $query->execute();
+    $ids = isset($results[$this->entityType]) ? array_keys($results[$this->entityType]) : array();
+    $entities = $ids ? entity_load($this->entityType, $ids) : array();
+    ksort($entities);
+    $rows = array();
+    foreach ($entities as $entity) {
+      $additional_cols = array($entity->institution, date('M d, Y', $entity->created_at));
+      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
+    }
+
+    $additional_headers = array('Institution', 'Created');
+    $render = array(
+      '#theme' => 'table',
+      '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
+      '#rows' => $rows,
+      '#empty' => t('None.'),
+    );
+    return $render;
+  }
 }
