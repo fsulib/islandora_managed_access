@@ -46,21 +46,21 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
   );
   $form['justification_info'] = array(
     '#title' => t('Justification Information'),
-    '#type' => 'textfield',
+    '#type' => 'textarea',
     '#default_value' => isset($profile->justification_info) ? $profile->justification_info : '',
     '#description' => t('Information displayed to the user about why the object has managed access.'),
     '#required' => TRUE,
   );
   $form['usage_info'] = array(
     '#title' => t('Usage Information'),
-    '#type' => 'textfield',
+    '#type' => 'textarea',
     '#default_value' => isset($profile->usage_info) ? $profile->usage_info : '',
     '#description' => t('Information displayed to the user about the terms of use for the object.'),
     '#required' => TRUE,
   );
   $form['contact_info'] = array(
     '#title' => t('Contact Information'),
-    '#type' => 'textfield',
+    '#type' => 'textarea',
     '#default_value' => isset($profile->contact_info) ? $profile->contact_info : '',
     '#description' => t('Information displayed to the user about who to contact if they have questions.'),
     '#required' => TRUE,
