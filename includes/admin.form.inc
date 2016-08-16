@@ -6,6 +6,18 @@
  */
 
 /**
+ * Load all MA Profiles for use in Object/User forms
+ */
+function get_islandora_managed_access_profiles() {
+  $profiles = entity_load('islandora_managed_access_profile', FALSE);
+  $profile_selects = array();
+  foreach ($profiles as $profile) {
+    $profile_selects[$profile->mname] = $profile->hname;
+  }
+  return $profile_selects;
+}
+
+/**
  * MA Profile form
  */
 function islandora_managed_access_profile_form($form, &$form_state, $profile = NULL) {
@@ -65,7 +77,6 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#description' => t('Information displayed to the user about who to contact if they have questions.'),
     '#required' => TRUE,
   );
-
   $form['actions'] = array(
     '#type' => 'actions',
     'submit' => array(
@@ -73,7 +84,6 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
       '#value' => isset($profile->id) ? t('Update profile') : t('Save profile'),
     ),
   );
-
   return $form;
 }
 
@@ -85,10 +95,6 @@ function islandora_managed_access_profile_form_validate($form, &$form_state) {
 
 function islandora_managed_access_profile_form_submit($form, &$form_state) {
   $profile = entity_ui_form_submit_build_entity($form, $form_state);
-  if (!isset($profile->id)) { 
-    $profile->created_at = time();
-  }
-  $profile->updated_at = time();
   $profile->save();
   drupal_set_message(t('The "@hname" profile has been saved.', array('@hname' => $profile->hname)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/profiles';
@@ -98,38 +104,43 @@ function islandora_managed_access_profile_form_submit($form, &$form_state) {
  * MA Object form
  */
 function islandora_managed_access_object_form($form, &$form_state, $object = NULL) {
-  $form['pid'] = array(
-    '#title' => t('PID'),
-    '#type' => 'textfield',
-    '#default_value' => isset($object->pid) ? $object->pid : '',
-    '#description' => t('PID of the Islandora object to be managed.'),
-    '#required' => TRUE,
-  );
-  $form['profile'] = array(
-    '#title' => t('Associated Profile'),
-    // This should really be a select list, do this later
-    '#type' => 'textfield',
-    '#default_value' => isset($object->profile) ? $object->profile : '',
-    '#description' => t('Machine Name of the Managed Access Profile associated with this object.'),
-    '#required' => TRUE,
-  );
-  $form['pid_whitelist'] = array(
-    '#title' => t('PID Whitelist'),
-    '#type' => 'textfield',
-    '#default_value' => isset($object->pid_whitelist) ? $object->pid_whitelist : '',
-    '#description' => t('If object is hierarchichal, specify PIDs that should NOT be managed in a comma-separated list.'),
-    '#required' => FALSE,
-  );
-
-  $form['actions'] = array(
-    '#type' => 'actions',
-    'submit' => array(
-      '#type' => 'submit',
-      '#value' => isset($object->id) ? t('Update object') : t('Save object'),
-    ),
-  );
-
-  return $form;
+  $profiles = get_islandora_managed_access_profiles();
+  if (count($profiles) == 0) {
+    drupal_set_message("No managed access profiles detected. At least one managed access profile is required to create a managed access object.", "error");
+    return array();
+  }
+  else {
+    $form['pid'] = array(
+      '#title' => t('PID'),
+      '#type' => 'textfield',
+      '#default_value' => isset($object->pid) ? $object->pid : '',
+      '#description' => t('PID of the Islandora object to be managed.'),
+      '#required' => TRUE,
+    );
+    $form['profile'] = array(
+      '#title' => t('Associated Profile'),
+      '#type' => 'select',
+      '#options' => $profiles, 
+      '#default_value' => isset($object->profile) ? $object->profile : '',
+      '#description' => t('Name of the Managed Access Profile associated with this object.'),
+      '#required' => TRUE,
+    );
+    $form['pid_whitelist'] = array(
+      '#title' => t('PID Whitelist'),
+      '#type' => 'textfield',
+      '#default_value' => isset($object->pid_whitelist) ? $object->pid_whitelist : '',
+      '#description' => t('If object is hierarchichal, specify PIDs that should NOT be managed in a comma-separated list.'),
+      '#required' => FALSE,
+    );
+    $form['actions'] = array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => isset($object->id) ? t('Update object') : t('Save object'),
+      ),
+    );
+    return $form;
+  }
 }
 
 function islandora_managed_access_object_form_validate($form, &$form_state) {
@@ -140,10 +151,6 @@ function islandora_managed_access_object_form_validate($form, &$form_state) {
 
 function islandora_managed_access_object_form_submit($form, &$form_state) {
   $object = entity_ui_form_submit_build_entity($form, $form_state);
-  if (!isset($object->id)) { 
-    $object->created_at = time();
-  }
-  $object->updated_at = time();
   $object->save();
   drupal_set_message(t('@pid has been saved.', array('@pid' => $object->pid)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/objects';
@@ -153,58 +160,53 @@ function islandora_managed_access_object_form_submit($form, &$form_state) {
  * MA User form
  */
 function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
-  $form['name'] = array(
-    '#title' => t('Name'),
-    '#type' => 'textfield',
-    '#default_value' => isset($user->name) ? $user->name : '',
-    //'#description' => t('Full name.'),
-    '#required' => TRUE,
-  );
-  $form['institution'] = array(
-    '#title' => t('Affiliated Institution'),
-    // This should really be a select list, do this later
-    '#type' => 'textfield',
-    '#default_value' => isset($user->institution) ? $user->institution : '',
-    //'#description' => t('Machine Name of the Managed Access Profile associated with this object.'),
-    '#required' => TRUE,
-  );
-  $form['request_info'] = array(
-    '#title' => t('Request Information'),
-    '#type' => 'textarea',
-    '#default_value' => isset($user->request_info) ? $user->request_info : '',
-    //'#description' => t('If object is hierarchichal, specify PIDs that should NOT be managed in a comma-separated list.'),
-    '#required' => TRUE,
-  );
-
-  $form['actions'] = array(
-    '#type' => 'actions',
-    'submit' => array(
-      '#type' => 'submit',
-      '#value' => isset($user->id) ? t('Update user') : t('Save user'),
-    ),
-  );
-
-  return $form;
+  $profiles = get_islandora_managed_access_profiles();
+  if (count($profiles) == 0) {
+    drupal_set_message("No managed access profiles detected. At least one managed access profile is required to create a managed access user.", "error");
+    return array();
+  }
+  else {
+    $form['name'] = array(
+      '#title' => t('Name'),
+      '#type' => 'textfield',
+      '#default_value' => isset($user->name) ? $user->name : '',
+      '#required' => TRUE,
+    );
+    $form['institution'] = array(
+      '#title' => t('Affiliated Institution'),
+      '#type' => 'textfield',
+      '#default_value' => isset($user->institution) ? $user->institution : '',
+      '#required' => TRUE,
+    );
+    $form['request_info'] = array(
+      '#title' => t('Request Information'),
+      '#type' => 'textarea',
+      '#default_value' => isset($user->request_info) ? $user->request_info : '',
+      '#required' => TRUE,
+    );
+    $form['actions'] = array(
+      '#type' => 'actions',
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => isset($user->id) ? t('Update user') : t('Save user'),
+      ),
+    );
+    return $form;
+  }
 }
 
 function islandora_managed_access_user_form_validate($form, &$form_state) {
-  /*
-  if (isset($form_state['values']['pid']) && !strpos($form_state['values']['pid'], ":")) {
-    form_set_error('PID', t('PID has incorrect syntax.'));
-  }
-  */
 }
 
 function islandora_managed_access_user_form_submit($form, &$form_state) {
   $user = entity_ui_form_submit_build_entity($form, $form_state);
-  if (!isset($user->id)) { 
-    $user->created_at = time();
 
-    // obvs a test, fix this later with the returned ID when creating a drupal user as a subprocess
+  // obvs a test, fix this later with the returned ID when creating a drupal user as a subprocess
+  if (!isset($user->id)) { 
     $user->uid = "TEST";
-    $user->refreshed_at = "777";
+    $user->refreshed_at = time();
   }
-  $user->updated_at = time();
+
   $user->save();
   drupal_set_message(t('@name has been saved.', array('@name' => $user->name)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/users';

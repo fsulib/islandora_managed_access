@@ -106,6 +106,20 @@ function islandora_managed_access_admin_access_callback($op, $maentity = NULL, $
 }
 
 /**
+ * Controller super class for MA entities
+ */
+class IslandoraManagedAccessEntityController extends EntityAPIController {
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    if (!isset($entity->id)) { 
+      $entity->created_at = time();
+    }
+    $entity->updated_at = time();
+    return parent::save($entity, $transaction);
+  }
+}
+
+
+/**
  * Entity class for MA Profiles
  */ 
 class IslandoraManagedAccessProfileEntity extends Entity {
@@ -114,10 +128,7 @@ class IslandoraManagedAccessProfileEntity extends Entity {
 /**
  * Entity Controller class for MA Profiles
  */
-class IslandoraManagedAccessProfileEntityController extends EntityAPIController {
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    return parent::save($entity, $transaction);
-  }
+class IslandoraManagedAccessProfileEntityController extends islandoramanagedaccessentitycontroller {
 }
 
 /**
@@ -181,10 +192,7 @@ class IslandoraManagedAccessObjectEntity extends Entity {
 /**
  * Entity Controller class for MA Objects
  */
-class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    return parent::save($entity, $transaction);
-  }
+class IslandoraManagedAccessObjectEntityController extends IslandoraManagedAccessEntityController {
 }
 
 /**
@@ -248,10 +256,7 @@ class IslandoraManagedAccessUserEntity extends Entity {
 /**
  * Entity Controller class for MA Users
  */
-class IslandoraManagedAccessUserEntityController extends EntityAPIController {
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    return parent::save($entity, $transaction);
-  }
+class IslandoraManagedAccessUserEntityController extends IslandoraManagedAccessEntityController {
 }
 
 /**
