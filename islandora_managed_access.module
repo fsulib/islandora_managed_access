@@ -68,7 +68,7 @@ function islandora_managed_access_entity_info() {
     'base table' => 'islandora_managed_access_user',
     'entity keys' => array(
       'id' => 'id',
-      'label' => 'name'
+      'label' => 'uid'
     ),
     'entity class' => 'IslandoraManagedAccessUserEntity',
     'controller class' => 'IslandoraManagedAccessUserEntityController',
@@ -129,6 +129,16 @@ class IslandoraManagedAccessProfileEntity extends Entity {
  * Entity Controller class for MA Profiles
  */
 class IslandoraManagedAccessProfileEntityController extends islandoramanagedaccessentitycontroller {
+
+  public function delete($ids) {
+    $profiles = entity_load('islandora_managed_access_profile', $ids);
+    foreach ($profiles as $profile) {
+      user_role_delete(intval($profile->rid)); 
+      //TODO Make this work with entity_delete(); for some reason it causes dropped connections on VM
+      db_delete('islandora_managed_access_profile')->condition('id', $profile->id)->execute();
+    }
+  }
+
 }
 
 /**
@@ -168,7 +178,7 @@ class IslandoraManagedAccessProfileEntityUIController extends EntityDefaultUICon
     ksort($entities);
     $rows = array();
     foreach ($entities as $entity) {
-      $additional_cols = array($entity->mname, $entity->role);
+      $additional_cols = array($entity->mname, user_role_load($entity->rid)->name);
       $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
     }
 
@@ -273,7 +283,7 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
 
   protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
     $header = $additional_header;
-    array_unshift($header, t('Name'));
+    array_unshift($header, t('UID'));
     if (!empty($this->entityInfo['exportable'])) {
       $header[] = t('Status');
     }

@@ -42,10 +42,9 @@ function islandora_managed_access_schema() {
         'type' => 'int',
         'not null' => TRUE,
       ),
-      'role' => array(
-        'description' => 'Drupal role associated with this profile',
-        'type' => 'varchar',
-        'length' => '255',
+      'rid' => array(
+        'description' => 'Drupal role ID associated with this profile',
+        'type' => 'int',
         'not null' => TRUE,
       ),
       'lifetime' => array(
@@ -150,12 +149,6 @@ function islandora_managed_access_schema() {
       'refreshed_at' => array(
         'description' => 'Date and time the user was last refreshed',
         'type' => 'int',
-        'not null' => TRUE,
-      ),
-      'name' => array(
-        'description' => 'Name of managed access user',
-        'type' => 'varchar',
-        'length' => '255',
         'not null' => TRUE,
       ),
       'institution' => array(

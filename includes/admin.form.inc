@@ -35,10 +35,10 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#description' => t('Machine-readable name to be used as a semantic ID.'),
     '#required' => TRUE,
   );
-  $form['role'] = array(
+  $form['role_name'] = array(
     '#title' => t('Associated Role'),
     '#type' => 'textfield',
-    '#default_value' => isset($profile->role) ? $profile->role : '',
+    '#default_value' => isset($profile->rid) ? user_role_load($profile->rid)->name : '',
     '#description' => t('Drupal User Role associated with this profile.'),
     '#required' => TRUE,
   );
@@ -94,7 +94,23 @@ function islandora_managed_access_profile_form_validate($form, &$form_state) {
 }
 
 function islandora_managed_access_profile_form_submit($form, &$form_state) {
+
   $profile = entity_ui_form_submit_build_entity($form, $form_state);
+
+  $oldRole = isset($profile->rid) ? user_role_load($profile->rid) : '';
+  if (empty($oldRole)) {
+    $newRole = new stdClass();
+    $newRole->name = $form['role_name']['#value'];
+    user_role_save($newRole);
+    $profile->rid = user_role_load_by_name($form['role_name']['#value'])->rid;
+  } 
+  else {
+    if ($oldRole->name != $form['role_name']['#value']) {
+      $oldRole->name = $form['role_name']['#value'];
+      user_role_save($oldRole);
+    }
+  }
+
   $profile->save();
   drupal_set_message(t('The "@hname" profile has been saved.', array('@hname' => $profile->hname)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/profiles';
@@ -172,6 +188,15 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
       '#default_value' => isset($user->name) ? $user->name : '',
       '#required' => TRUE,
     );
+    $form['email'] = array(
+      '#title' => t('Email'),
+      '#type' => 'textfield',
+
+      // Load user name by entity uid
+      '#default_value' => isset($user->name) ? $user->name : 'NONEZO',
+
+      '#required' => TRUE,
+    );
     $form['institution'] = array(
       '#title' => t('Affiliated Institution'),
       '#type' => 'textfield',
@@ -199,16 +224,58 @@ function islandora_managed_access_user_form_validate($form, &$form_state) {
 }
 
 function islandora_managed_access_user_form_submit($form, &$form_state) {
-  $user = entity_ui_form_submit_build_entity($form, $form_state);
+  $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
+
+  // Create new Drupal User
+  $fields = array(
+
+    'name' => $form['name']['#value'],
+    'mail' => $form['email']['#value'],
+    // autogenerate password
+    'pass' => 'auto',
+    'status' => 1,
+    'roles' => array(
+      DRUPAL_AUTHENTICATED_RID => 'authenticated user',
+
+      // Get the proper bespoke drupal role in "id => name" format
+      //4 => 'test_researcher',
+
+    ),
+  );
 
   // obvs a test, fix this later with the returned ID when creating a drupal user as a subprocess
-  if (!isset($user->id)) { 
-    $user->uid = "TEST";
-    $user->refreshed_at = time();
+  if (!isset($user_entity->id)) { 
+
+    // Create new Drupal User
+    $fields = array(
+      'name' => $user_entity->name,
+    
+      // Create an email part of the form?
+      //'mail' => 'user_name@example.com',
+
+      //'init' => 'email address',
+      
+      // autogenerate a password
+      //'pass' => 'auto',
+
+      'status' => 1,
+      'roles' => array(
+        DRUPAL_AUTHENTICATED_RID => 'authenticated user',
+
+        // Get the proper bespoke drupal role in "id => name" format
+        //4 => 'test_researcher',
+
+      ),
+    );
+
+    $account = user_save(NULL, $fields);
+    $user_entity->uid = $account->uid;
+
+    $user_entity->refreshed_at = time();
   }
 
-  $user->save();
-  drupal_set_message(t('@name has been saved.', array('@name' => $user->name)));
+  $user_entity->save();
+  drupal_set_message(t('@name has been saved.', array('@name' => $user_entity->name)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/users';
 }
 
