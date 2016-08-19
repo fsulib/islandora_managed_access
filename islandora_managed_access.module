@@ -106,20 +106,6 @@ function islandora_managed_access_admin_access_callback($op, $maentity = NULL, $
 }
 
 /**
- * Controller super class for MA entities
- */
-class IslandoraManagedAccessEntityController extends EntityAPIController {
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    if (!isset($entity->id)) { 
-      $entity->created_at = time();
-    }
-    $entity->updated_at = time();
-    return parent::save($entity, $transaction);
-  }
-}
-
-
-/**
  * Entity class for MA Profiles
  */ 
 class IslandoraManagedAccessProfileEntity extends Entity {
@@ -128,13 +114,20 @@ class IslandoraManagedAccessProfileEntity extends Entity {
 /**
  * Entity Controller class for MA Profiles
  */
-class IslandoraManagedAccessProfileEntityController extends islandoramanagedaccessentitycontroller {
+class IslandoraManagedAccessProfileEntityController extends EntityAPIController {
+
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    if (!isset($entity->id)) { 
+      $entity->created_at = time();
+    }
+    $entity->updated_at = time();
+    return parent::save($entity, $transaction);
+  }
 
   public function delete($ids) {
     $profiles = entity_load('islandora_managed_access_profile', $ids);
     foreach ($profiles as $profile) {
       user_role_delete(intval($profile->rid)); 
-      //TODO Make this work with entity_delete(); for some reason it causes dropped connections on VM
       db_delete('islandora_managed_access_profile')->condition('id', $profile->id)->execute();
     }
   }
@@ -202,7 +195,16 @@ class IslandoraManagedAccessObjectEntity extends Entity {
 /**
  * Entity Controller class for MA Objects
  */
-class IslandoraManagedAccessObjectEntityController extends IslandoraManagedAccessEntityController {
+class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
+
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    if (!isset($entity->id)) { 
+      $entity->created_at = time();
+    }
+    $entity->updated_at = time();
+    return parent::save($entity, $transaction);
+  }
+
 }
 
 /**
@@ -266,7 +268,24 @@ class IslandoraManagedAccessUserEntity extends Entity {
 /**
  * Entity Controller class for MA Users
  */
-class IslandoraManagedAccessUserEntityController extends IslandoraManagedAccessEntityController {
+class IslandoraManagedAccessUserEntityController extends EntityAPIController {
+
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    if (!isset($entity->id)) { 
+      $entity->created_at = time();
+    }
+    $entity->updated_at = time();
+    return parent::save($entity, $transaction);
+  }
+
+  public function delete($ids) {
+    $users = entity_load('islandora_managed_access_user', $ids);
+    foreach ($users as $user) {
+      user_delete(intval($user->uid)); 
+      db_delete('islandora_managed_access_user')->condition('id', $user->id)->execute();
+    }
+  }
+
 }
 
 /**
@@ -306,11 +325,11 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
     ksort($entities);
     $rows = array();
     foreach ($entities as $entity) {
-      $additional_cols = array($entity->institution, date('M d, Y', $entity->created_at));
+      $additional_cols = array(user_load($entity->uid)->name, user_load($entity->uid)->mail, $entity->institution, date('M d, Y', $entity->created_at));
       $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
     }
 
-    $additional_headers = array('Institution', 'Created');
+    $additional_headers = array('Name', 'Email', 'Institution', 'Created');
     $render = array(
       '#theme' => 'table',
       '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),

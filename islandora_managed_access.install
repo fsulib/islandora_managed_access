@@ -107,8 +107,7 @@ function islandora_managed_access_schema() {
       ),
       'profile' => array(
         'description' => 'Machine name of associated managed access profile',
-        'type' => 'varchar',
-        'length' => '255',
+        'type' => 'int',
         'not null' => TRUE,
       ),
       'pid_whitelist' => array(
