@@ -48,14 +48,14 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#title' => t('Access Lifetime'),
     '#type' => 'textfield',
     '#default_value' => isset($profile->lifetime) ? $profile->lifetime : '',
-    '#description' => t('The number of days before a user loses access. Set to 0 for no expiration.'),
+    '#description' => t('[NOT WORKING YET] The number of days before a user loses access. Set to 0 for no expiration.'),
     '#required' => TRUE,
   );
   $form['ip_whitelist'] = array(
     '#title' => t('IP Whitelist'),
     '#type' => 'textfield',
     '#default_value' => isset($profile->ip_whitelist) ? $profile->ip_whitelist : '',
-    '#description' => t('A comma-separated list of IPs or IP ranges that should have access to the object.'),
+    '#description' => t('[NOT WORKING YET] A comma-separated list of IPs or IP ranges that should have access to the object.'),
     '#required' => FALSE,
   );
   $form['justification_info'] = array(
@@ -150,7 +150,7 @@ function islandora_managed_access_object_form($form, &$form_state, $object = NUL
       '#title' => t('PID Whitelist'),
       '#type' => 'textfield',
       '#default_value' => isset($object->pid_whitelist) ? $object->pid_whitelist : '',
-      '#description' => t('If object is hierarchichal, specify PIDs that should NOT be managed in a comma-separated list.'),
+      '#description' => t('[NOT WORKING YET] If object is hierarchichal, specify PIDs that should NOT be managed in a comma-separated list.'),
       '#required' => FALSE,
     );
     $form['actions'] = array(
