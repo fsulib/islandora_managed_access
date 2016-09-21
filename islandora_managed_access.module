@@ -205,6 +205,15 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
     return parent::save($entity, $transaction);
   }
 
+  #HERE
+  public function delete($ids) {
+    $objects = entity_load('islandora_managed_access_object', $ids);
+    foreach ($objects as $object) {
+      user_delete(intval($object->uid)); 
+      db_delete('islandora_managed_access_object')->condition('id', $object->id)->execute();
+    }
+  }
+
 }
 
 /**
