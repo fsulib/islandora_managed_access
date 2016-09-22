@@ -197,22 +197,25 @@ class IslandoraManagedAccessObjectEntity extends Entity {
  */
 class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
 
-  #HERE
-
   // Applies MA Profile policy to single PID
-  public static function manageIslandoraObject($pid) {
+  public static function manageIslandoraObject($pid, $profile_mname) {
     watchdog("ma", "Managing Islandora object $pid");   
+    $object = islandora_object_load($pid);
+    $object->relationships->add(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile', $profile_mname, RELS_TYPE_PLAIN_LITERAL);
   }
 
   // Applies MA Profile policy to single PID
   public static function unmanageIslandoraObject($pid) {
     watchdog("ma", "Unmanaging Islandora object $pid");   
+    $object = islandora_object_load($pid);
+    $object->relationships->remove(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
   }
 
   // Gets all child PIDs of object
   public static function getChildPids($entity) {
     // Run SPARQL query that retrieves <fedora:isConstituentOf rdf:resource="info:fedora/fsu:273671"></fedora:isConstituentOf>
     // for compound objects, or <fedora:isMemberOf rdf:resource="info:fedora/fsu:159278"></fedora:isMemberOf> for newspapers/serials
+    // Good example query: https://gist.github.com/jordandukart/4ba9593f7ead5800dd26ffe23a736ee2
     watchdog("ma", "getting child pids");   
     $root_pid = $entity->pid;
     $pids = array();
@@ -231,8 +234,10 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
   // Applies MA Profile policy on Islandora object
   public static function manageMAObject($entity) {
     $children = self::getChildPids($entity);
+    $profile = entity_load('islandora_managed_access_profile', array($entity->profile));
+    $profile_mname = $profile[$entity->profile]->mname;
     /*
-    // This removes the root pid for some reason
+    // This removes the root pid for some reason (because you added it to the list of children?)
     $whitelisted_string = $entity->pid_whitelist;
     $whitelisted_array = explode(",", str_replace(" ", "", $whitelisted_string));
     foreach ($whitelisted_array as $pid) {
@@ -240,7 +245,7 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
     }
     */
     foreach ($children as $child) {
-      self::manageIslandoraObject($child); 
+      self::manageIslandoraObject($child, $profile_mname); 
     }
   }
   
