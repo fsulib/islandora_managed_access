@@ -408,3 +408,11 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
     return $render;
   }
 }
+
+/**
+ * Implements hook_islandora_view_object()
+ */
+
+function islandora_managed_access_islandora_view_object($object) {
+ watchdog("ma", "Viewing $object->id");
+}
