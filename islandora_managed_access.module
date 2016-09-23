@@ -20,6 +20,12 @@ function islandora_managed_access_menu() {
     'page arguments' => array('admin/islandora/tools/managed_access/profiles'),
   ); 
 
+  $items['managed-access'] = array(
+    'title' => 'Managed Access',
+    'access callback' => TRUE,
+    'page callback' => 'islandora_managed_access_soft403',
+  );
+
   return $items;
 }
 
@@ -411,8 +417,42 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
 
 /**
  * Implements hook_islandora_view_object()
+ *
+ * When an object is loaded, check to see if it has a 'hasManagedAccessProfile' predicate in the RELS-EXT
+ * and if it DOES, check to see if user has sufficient permission to view it. If not, bounce.
  */
 
 function islandora_managed_access_islandora_view_object($object) {
- watchdog("ma", "Viewing $object->id");
+  $managed_data = $object->relationships->get(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
+  if (count($managed_data) > 0) {
+    $ma_profile_mname = $managed_data[0]['object']['value'];
+    $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
+    $ma_profile_rid = (int)$ma_profile->rid;
+    $admin_rid = (int)user_role_load_by_name('administrator')->rid;
+    $allowed_rids = array($admin_rid, $ma_profile_rid);
+    $user_rids = array_keys($GLOBALS['user']->roles);
+    if (count(array_intersect($allowed_rids, $user_rids)) < 1) {
+      drupal_goto("/managed-access/$ma_profile_mname");
+    }
+  }
+}
+
+function islandora_managed_access_soft403($profile_mname = '') {
+  $ma_profile = islandora_managed_access_get_profile_by_machine_name($profile_mname);
+
+  // Placeholder until I can figure out how to do it the right way.
+  echo "<h1>This is the $ma_profile->hname profile signup page.</h1>";
+  echo "<p>$ma_profile->justification_info</p>";
+  echo "<p>$ma_profile->usage_info</p>";
+  echo "<p>$ma_profile->contact_info</p>";
+  echo "<p><u>Register for a DigiNole account</u></p>";
+  drupal_exit();
+
+}
+
+function islandora_managed_access_get_profile_by_machine_name($ma_profile_mname) {
+  $query = new EntityFieldQuery();
+  $result = $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('mname', $ma_profile_mname)->execute();
+  $ma_profile_id = array_keys($result['islandora_managed_access_profile'])[0];
+  return entity_load('islandora_managed_access_profile', array($ma_profile_id))[$ma_profile_id];
 }
