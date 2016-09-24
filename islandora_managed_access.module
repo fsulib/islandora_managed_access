@@ -21,9 +21,21 @@ function islandora_managed_access_menu() {
   ); 
 
   $items['managed-access'] = array(
-    'title' => 'Managed Access',
+    'title' => 'Managed Access Policy',
     'access callback' => TRUE,
     'page callback' => 'islandora_managed_access_soft403',
+  );
+
+  $items['register-user'] = array(
+    'title' => 'Register for access',
+    'access callback' => TRUE,
+    'page callback' => 'islandora_managed_access_register_user',
+  );
+
+  $items['registration-success'] = array(
+    'title' => 'You have successfully registered!',
+    'access callback' => TRUE,
+    'page callback' => 'islandora_managed_access_registration_success',
   );
 
   return $items;
@@ -440,6 +452,7 @@ function islandora_managed_access_islandora_view_object($object) {
 function islandora_managed_access_soft403($profile_mname = '') {
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($profile_mname);
 
+  /*
   // Placeholder until I can figure out how to do it the right way.
   echo "<h1>This is the $ma_profile->hname profile signup page.</h1>";
   echo "<p>$ma_profile->justification_info</p>";
@@ -447,7 +460,19 @@ function islandora_managed_access_soft403($profile_mname = '') {
   echo "<p>$ma_profile->contact_info</p>";
   echo "<p><u>Register for a DigiNole account</u></p>";
   drupal_exit();
-
+  */
+ 
+  $message = <<<EOQ
+<p>This is the $ma_profile->hname Managed Access Policy page.</p>
+<p>$ma_profile->justification_info</p>
+<p>$ma_profile->usage_info</p>
+<p>$ma_profile->contact_info</p>
+<a href="/register-user/$ma_profile->mname">
+  <button>Register for access to $ma_profile->hname materials</button>
+</a>
+EOQ;
+  
+  return $message;
 }
 
 function islandora_managed_access_get_profile_by_machine_name($ma_profile_mname) {
@@ -455,4 +480,43 @@ function islandora_managed_access_get_profile_by_machine_name($ma_profile_mname)
   $result = $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('mname', $ma_profile_mname)->execute();
   $ma_profile_id = array_keys($result['islandora_managed_access_profile'])[0];
   return entity_load('islandora_managed_access_profile', array($ma_profile_id))[$ma_profile_id];
+}
+
+function islandora_managed_access_register_user($ma_profile_mname) {
+  $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
+  $message = <<<EOQ
+<form action="/registration-success/$ma_profile->mname" method="post">
+  <input type="text" name="name" value="Name"><br/>
+  <input type="text" name="mail" value="Email"><br/>
+  <input type="text" name="inst" value="Institution"><br/>
+  <input type="text" name="req" value="Request"><br/>
+  <input type="hidden" name="country" value="Norway"><br/>
+  <input type="submit" value="Submit">
+</form>
+EOQ;
+
+  return $message;
+}
+
+function islandora_managed_access_registration_success($ma_profile_mname) {
+  $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
+
+  // Extract info from POST, create a new MA user and return the username & password
+  $ma_user_username = $ma_profile->mname . "-" . time();
+  $ma_user_password = "X_f4k3_P4SsW0rD_X";
+
+  $message = <<<EOQ
+<p>Thank you for registering, {$_POST['name']}!</p>
+<p>You will now be able to log in and view the {$ma_profile->hname} materials using the following credentials:<br/>
+<ul>
+  <li>Username: {$ma_user_username}</li>
+  <li>Password: {$ma_user_password}</li>
+</ul>
+Your login information has also been sent to the email specified in the registration form.</p>
+<a href="/user">
+  <button>Log In</button>
+</a>
+EOQ;
+
+  return $message;
 }
