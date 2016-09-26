@@ -449,19 +449,12 @@ function islandora_managed_access_islandora_view_object($object) {
   }
 }
 
-function islandora_managed_access_soft403($profile_mname = '') {
-  $ma_profile = islandora_managed_access_get_profile_by_machine_name($profile_mname);
+function islandora_managed_access_soft403($profile_mname = FALSE) {
+  if ($profile_mname == FALSE) {
+    drupal_goto("/");
+  }
 
-  /*
-  // Placeholder until I can figure out how to do it the right way.
-  echo "<h1>This is the $ma_profile->hname profile signup page.</h1>";
-  echo "<p>$ma_profile->justification_info</p>";
-  echo "<p>$ma_profile->usage_info</p>";
-  echo "<p>$ma_profile->contact_info</p>";
-  echo "<p><u>Register for a DigiNole account</u></p>";
-  drupal_exit();
-  */
- 
+  $ma_profile = islandora_managed_access_get_profile_by_machine_name($profile_mname);
   $message = <<<EOQ
 <p>This is the $ma_profile->hname Managed Access Policy page.</p>
 <p>$ma_profile->justification_info</p>
@@ -486,11 +479,10 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
   $message = <<<EOQ
 <form action="/registration-success/$ma_profile->mname" method="post">
-  <input type="text" name="name" value="Name"><br/>
-  <input type="text" name="mail" value="Email"><br/>
-  <input type="text" name="inst" value="Institution"><br/>
-  <input type="text" name="req" value="Request"><br/>
-  <input type="hidden" name="country" value="Norway"><br/>
+  <input type="text" name="name" placeholder="Name"><br/>
+  <input type="text" name="mail" placeholder="Email"><br/>
+  <input type="text" name="inst" placeholder="Institution"><br/>
+  <textarea rows="4" cols="50" name="req" placeholder="Request"><br/>
   <input type="submit" value="Submit">
 </form>
 EOQ;
