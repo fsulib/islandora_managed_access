@@ -482,7 +482,7 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   <input type="text" name="name" placeholder="Name"><br/>
   <input type="text" name="mail" placeholder="Email"><br/>
   <input type="text" name="inst" placeholder="Institution"><br/>
-  <textarea rows="4" cols="50" name="req" placeholder="Request"><br/>
+  <textarea rows="4" cols="50" name="req" placeholder="Request"></textarea><br/>
   <input type="submit" value="Submit">
 </form>
 EOQ;
@@ -493,15 +493,36 @@ EOQ;
 function islandora_managed_access_registration_success($ma_profile_mname) {
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
 
+  $ma_user = entity_create('islandora_managed_access_user', array());
+  $ma_user_password = rand(100000000000, 999999999999);
+
+  $role = user_role_load($ma_profile->rid);
+  $fields = array(
+    'name' => $_POST['name'],
+    'mail' => $_POST['mail'],
+    'pass' => $ma_user_password,
+    'status' => 1,
+    'roles' => array(
+      DRUPAL_AUTHENTICATED_RID => 'authenticated user',
+      $role->rid => $role->name,
+    ),
+  );
+  $account = user_save(NULL, $fields);
+  $ma_user->uid = $account->uid;
+  $ma_user->refreshed_at = time();
+  $ma_user->institution = $_POST['inst'];
+  $ma_user->request_info = $_POST['req'];
+  $ma_user->save();
+
+
   // Extract info from POST, create a new MA user and return the username & password
-  $ma_user_username = $ma_profile->mname . "-" . time();
-  $ma_user_password = "X_f4k3_P4SsW0rD_X";
+  //$ma_user_username = $ma_profile->mname . "-" . time();
 
   $message = <<<EOQ
 <p>Thank you for registering, {$_POST['name']}!</p>
 <p>You will now be able to log in and view the {$ma_profile->hname} materials using the following credentials:<br/>
 <ul>
-  <li>Username: {$ma_user_username}</li>
+  <li>Username: {$_POST['name']}</li>
   <li>Password: {$ma_user_password}</li>
 </ul>
 Your login information has also been sent to the email specified in the registration form.</p>
@@ -509,6 +530,8 @@ Your login information has also been sent to the email specified in the registra
   <button>Log In</button>
 </a>
 EOQ;
+
+  mail($_POST['mail'], "Account creation info", $message);
 
   return $message;
 }
