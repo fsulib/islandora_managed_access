@@ -190,7 +190,7 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
     $form['name'] = array(
       '#title' => t('Name'),
       '#type' => 'textfield',
-      '#default_value' => isset($user->uid) ? user_load($user->uid)->name : '',
+      '#default_value' => isset($user->name) ? user->name : '',
       '#required' => TRUE,
       '#disabled' => isset($user->id) ? TRUE : FALSE,
     );
@@ -217,6 +217,20 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
       '#default_value' => isset($user->institution) ? $user->institution : '',
       '#required' => TRUE,
     );
+    $form['phone'] = array(
+      '#title' => t('Phone Number'),
+      '#description' => t('Full phone number where you can be contacted.'),
+      '#type' => 'textfield',
+      '#default_value' => isset($user->phone) ? $user->phone : '',
+      '#required' => TRUE,
+    );
+    $form['address'] = array(
+      '#title' => t('Physical Address'),
+      '#description' => t('A mailing address (include city and state) where you can be contacted.'),
+      '#type' => 'textfield',
+      '#default_value' => isset($user->address) ? $user->address : '',
+      '#required' => TRUE,
+    );
     $form['request_info'] = array(
       '#title' => t('Request Information'),
       '#description' => t('Reason why user wants to access managed access objects.'),
@@ -224,7 +238,6 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
       '#default_value' => isset($user->request_info) ? $user->request_info : '',
       '#required' => TRUE,
     );
-
     $form['actions'] = array(
       '#type' => 'actions',
       'submit' => array(
@@ -242,25 +255,12 @@ function islandora_managed_access_user_form_validate($form, &$form_state) {
 function islandora_managed_access_user_form_submit($form, &$form_state) {
   $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
   if (!isset($user_entity->id)) { 
-    $profile = entity_load('islandora_managed_access_profile', array($form['profile']['#value']));
-    $role = user_role_load($profile[$form['profile']['#value']]->rid);
-	  $fields = array(
-	    'name' => $form['name']['#value'],
-	    'mail' => $form['email']['#value'],
-	    'pass' => $role->name . "_" . time(),
-	    'status' => 1,
-	    'roles' => array(
-	      DRUPAL_AUTHENTICATED_RID => 'authenticated user',
-        $role->rid => $role->name,
-	    ),
-	  );
-
-    $account = user_save(NULL, $fields);
-    $user_entity->uid = $account->uid;
-    $user_entity->refreshed_at = time();
+    $profile_entity = entity_load('islandora_managed_access_profile', array($form['profile']['#value'])); 
+    return $user_entity->save_new_ma_user($user_entity, $profile_entity, $form['email']['#value']);
+  } 
+  else {
+    $user_entity->save();
   }
-
-  $user_entity->save();
   drupal_set_message(t('@name has been saved.', array('@name' => $user_entity->name)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/users';
 }

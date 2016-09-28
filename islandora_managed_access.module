@@ -357,6 +357,29 @@ class IslandoraManagedAccessUserEntity extends Entity {
  */
 class IslandoraManagedAccessUserEntityController extends EntityAPIController {
 
+  //HERE pass this a newly created user entity like so
+  //$ma_user = entity_create('islandora_managed_access_user', array());
+  public function save_new_ma_user($ma_user, $ma_profile, $email) {
+    $role = user_role_load($ma_profile->rid);
+    $ma_user_username = $role->name . "_" . time(); 
+    $ma_user_password = rand(100000000000, 999999999999);
+    $fields = array(
+      'name' => $ma_user_username,
+      'mail' => $email,
+      'pass' => $ma_user_password,
+      'status' => 1,
+      'roles' => array(
+        DRUPAL_AUTHENTICATED_RID => 'authenticated user',
+        $role->rid => $role->name,
+      ),
+    );
+    $account = user_save(NULL, $fields);
+    $ma_user->uid = $account->uid;
+    $ma_user->refreshed_at = time();
+    $ma_user->save();
+    return array('ma_user' => $ma_user, 'drupal_user' => $account);
+  }
+
   public function save($entity, DatabaseTransaction $transaction = NULL) {
     if (!isset($entity->id)) { 
       $entity->created_at = time();
@@ -435,6 +458,10 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
  */
 
 function islandora_managed_access_islandora_view_object($object) {
+
+  //REMOVE
+  IslandoraManagedAccessUserEntityController::save_new_ma_user(FALSE, 'burroughs_estate');
+
   $managed_data = $object->relationships->get(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
   if (count($managed_data) > 0) {
     $ma_profile_mname = $managed_data[0]['object']['value'];

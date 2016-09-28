@@ -156,6 +156,18 @@ function islandora_managed_access_schema() {
         'length' => '255',
         'not null' => TRUE,
       ),
+      'phone' => array(
+        'description' => 'Phone number of user',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'address' => array(
+        'description' => 'Mailing address of user',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
       'request_info' => array(
         'description' => 'Blurb from user about why they want access to managed object',
         'type' => 'text',
