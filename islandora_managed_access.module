@@ -359,7 +359,8 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
 
   //HERE pass this a newly created user entity like so
   //$ma_user = entity_create('islandora_managed_access_user', array());
-  public function save_new_ma_user($ma_user, $ma_profile, $email) {
+  public static function save_new_ma_user($ma_user, $ma_profile, $email) {
+    watchdog("ma", "Profile RID is {$ma_profile->rid}");
     $role = user_role_load($ma_profile->rid);
     $ma_user_username = $role->name . "_" . time(); 
     $ma_user_password = rand(100000000000, 999999999999);

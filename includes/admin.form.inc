@@ -190,7 +190,7 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
     $form['name'] = array(
       '#title' => t('Name'),
       '#type' => 'textfield',
-      '#default_value' => isset($user->name) ? user->name : '',
+      '#default_value' => isset($user->name) ? $user->name : '',
       '#required' => TRUE,
       '#disabled' => isset($user->id) ? TRUE : FALSE,
     );
@@ -256,7 +256,8 @@ function islandora_managed_access_user_form_submit($form, &$form_state) {
   $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
   if (!isset($user_entity->id)) { 
     $profile_entity = entity_load('islandora_managed_access_profile', array($form['profile']['#value'])); 
-    return $user_entity->save_new_ma_user($user_entity, $profile_entity, $form['email']['#value']);
+    watchdog("ma", "Profile name is {$profile_entity->mname}, ({$form['profile']['#value']})");
+    IslandoraManagedAccessUserEntityController::save_new_ma_user($user_entity, $profile_entity, $form['email']['#value']);
   } 
   else {
     $user_entity->save();
