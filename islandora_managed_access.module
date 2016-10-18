@@ -18,24 +18,29 @@ function islandora_managed_access_menu() {
     'type' => MENU_NORMAL_ITEM,
     'page callback' => 'drupal_goto',
     'page arguments' => array('admin/islandora/tools/managed_access/profiles'),
+    'menu_name' => FALSE,
   ); 
 
   $items['managed-access'] = array(
     'title' => 'Managed Access Policy',
     'access callback' => TRUE,
     'page callback' => 'islandora_managed_access_soft403',
+    'menu_name' => FALSE,
   );
 
+  module_load_include('inc', 'islandora_managed_access', 'admin.form');
   $items['register-user'] = array(
     'title' => 'Register for access',
     'access callback' => TRUE,
     'page callback' => 'islandora_managed_access_register_user',
+    'menu_name' => FALSE,
   );
 
   $items['registration-success'] = array(
     'title' => 'You have successfully registered!',
     'access callback' => TRUE,
     'page callback' => 'islandora_managed_access_registration_success',
+    'menu_name' => FALSE,
   );
 
   return $items;

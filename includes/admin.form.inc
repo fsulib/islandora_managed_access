@@ -256,4 +256,3 @@ function islandora_managed_access_user_form_submit($form, &$form_state) {
   drupal_set_message(t('@name has been saved.', array('@name' => $user_entity->name)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/users';
 }
-
