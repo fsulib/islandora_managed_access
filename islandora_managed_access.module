@@ -461,7 +461,9 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
 function islandora_managed_access_islandora_view_object($object) {
 
   //REMOVE
-  IslandoraManagedAccessUserEntityController::save_new_ma_user(FALSE, 'burroughs_estate');
+  #$ma_user = entity_create('islandora_managed_access_user', array());
+  #$ma_profile = islandora_managed_access_get_profile_by_machine_name('burroughs_estate');
+  #IslandoraManagedAccessUserEntityController::save_new_ma_user($ma_user, $ma_profile, 'test@test.edu');
 
   $managed_data = $object->relationships->get(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
   if (count($managed_data) > 0) {
