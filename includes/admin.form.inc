@@ -107,15 +107,6 @@ function islandora_managed_access_profile_form_submit($form, &$form_state) {
     $profile->rid = user_role_load_by_name($form['role_name']['#value'])->rid;
   } 
 
-  /* probably don't need this since we disable editing role name
-  else {
-    if ($oldRole->name != $form['role_name']['#value']) {
-      $oldRole->name = $form['role_name']['#value'];
-      user_role_save($oldRole);
-    }
-  }
-  */
-
   $profile->save();
   drupal_set_message(t('The "@hname" profile has been saved.', array('@hname' => $profile->hname)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/profiles';
@@ -255,9 +246,9 @@ function islandora_managed_access_user_form_validate($form, &$form_state) {
 function islandora_managed_access_user_form_submit($form, &$form_state) {
   $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
   if (!isset($user_entity->id)) { 
-    $profile_entity = entity_load('islandora_managed_access_profile', array($form['profile']['#value'])); 
-    watchdog("ma", "Profile name is {$profile_entity->mname}, ({$form['profile']['#value']})");
-    IslandoraManagedAccessUserEntityController::save_new_ma_user($user_entity, $profile_entity, $form['email']['#value']);
+    $profile_id = $form['profile']['#value'];
+    $profile_entity = entity_load('islandora_managed_access_profile', array($profile_id)); 
+    IslandoraManagedAccessUserEntityController::save_new_ma_user($user_entity, $profile_entity[$profile_id], $form['email']['#value']);
   } 
   else {
     $user_entity->save();

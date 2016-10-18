@@ -356,9 +356,6 @@ class IslandoraManagedAccessUserEntity extends Entity {
  * Entity Controller class for MA Users
  */
 class IslandoraManagedAccessUserEntityController extends EntityAPIController {
-
-  //HERE pass this a newly created user entity like so
-  //$ma_user = entity_create('islandora_managed_access_user', array());
   public static function save_new_ma_user($ma_user, $ma_profile, $email) {
     $role = user_role_load($ma_profile->rid);
     $username = $role->name . "_" . time(); 
@@ -376,6 +373,10 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
     $account = user_save(NULL, $fields);
     $ma_user->uid = $account->uid;
     $ma_user->save();
+
+    #http://stackoverflow.com/a/21645279
+    #drupal_mail('contactform', 'send_link', $to, language_default(), $params, 'demo@demo.com', TRUE);
+
     return array('ma_user' => $ma_user, 'drupal_user' => $account, 'password' => $password);
   }
 
@@ -435,7 +436,7 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
     ksort($entities);
     $rows = array();
     foreach ($entities as $entity) {
-      $additional_cols = array(user_load($entity->uid)->name, user_load($entity->uid)->mail, $entity->institution, date('M d, Y', $entity->created_at));
+      $additional_cols = array($entity->name, user_load($entity->uid)->mail, $entity->institution, date('M d, Y', $entity->created_at));
       $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
     }
 
@@ -456,9 +457,7 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
  * When an object is loaded, check to see if it has a 'hasManagedAccessProfile' predicate in the RELS-EXT
  * and if it DOES, check to see if user has sufficient permission to view it. If not, bounce.
  */
-
 function islandora_managed_access_islandora_view_object($object) {
-
   $managed_data = $object->relationships->get(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
   if (count($managed_data) > 0) {
     $ma_profile_mname = $managed_data[0]['object']['value'];
@@ -477,8 +476,10 @@ function islandora_managed_access_soft403($profile_mname = FALSE) {
   if ($profile_mname == FALSE) {
     drupal_goto("/");
   }
-
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($profile_mname);
+  if (is_null($ma_profile)) {
+    drupal_goto("/");
+  }
   $message = <<<EOQ
 <p>This is the $ma_profile->hname Managed Access Policy page.</p>
 <p>$ma_profile->justification_info</p>
@@ -495,8 +496,13 @@ EOQ;
 function islandora_managed_access_get_profile_by_machine_name($ma_profile_mname) {
   $query = new EntityFieldQuery();
   $result = $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('mname', $ma_profile_mname)->execute();
-  $ma_profile_id = array_keys($result['islandora_managed_access_profile'])[0];
-  return entity_load('islandora_managed_access_profile', array($ma_profile_id))[$ma_profile_id];
+  if ($result) {
+    $ma_profile_id = array_keys($result['islandora_managed_access_profile'])[0];
+    return entity_load('islandora_managed_access_profile', array($ma_profile_id))[$ma_profile_id];
+  }
+  else {
+    return NULL;
+  }
 }
 
 function islandora_managed_access_register_user($ma_profile_mname) {
@@ -543,6 +549,5 @@ Your login information has also been sent to the email specified in the registra
   <button>Log In</button>
 </a>
 EOQ;
-  mail($_POST['mail'], "Account creation info", $message);
   return $message;
 }
