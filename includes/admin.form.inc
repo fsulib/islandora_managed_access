@@ -48,7 +48,7 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#title' => t('Access Lifetime'),
     '#type' => 'textfield',
     '#default_value' => isset($profile->lifetime) ? $profile->lifetime : '',
-    '#description' => t('[NOT WORKING YET] The number of days before a user loses access. Set to 0 for no expiration.'),
+    '#description' => t('The number of days before a user loses access. Set to 0 for no expiration.'),
     '#required' => TRUE,
   );
   $form['ip_whitelist'] = array(
