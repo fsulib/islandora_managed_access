@@ -548,6 +548,7 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   <input type="text" name="phone" placeholder="Phone #"><br/>
   <input type="text" name="addr" placeholder="Address"><br/>
   <textarea rows="4" cols="50" name="req" placeholder="Request"></textarea><br/>
+  <input type="checkbox" required> I have read and agree to the terms of use.<br/>
   <input type="submit" value="Submit">
 </form>
 EOQ;
