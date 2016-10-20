@@ -552,7 +552,13 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   <input type="submit" value="Submit">
 </form>
 EOQ;
-  return $message;
+
+  $content['raw_markup'] = array(
+    '#type' => 'markup',
+    '#markup' => $message,
+  );
+ 
+  return $content;
 }
 
 function islandora_managed_access_registration_success($ma_profile_mname) {
@@ -580,5 +586,11 @@ Your login information has also been sent to the email specified in the registra
   <button>Log In</button>
 </a>
 EOQ;
-  return $message;
+
+  $content['raw_markup'] = array(
+    '#type' => 'markup',
+    '#markup' => $message,
+  );
+ 
+  return $content;
 }
