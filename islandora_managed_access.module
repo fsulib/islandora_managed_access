@@ -140,7 +140,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
 }
 
 /**
- * Implements hook_mail().
+ * Implements hook_cron().
  */
 function islandora_managed_access_cron() {
   watchdog("islandora_managed_access", "Running expiration checks for managed access users."); 
@@ -515,37 +515,40 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
  */
 function islandora_managed_access_islandora_view_object($object) {
   $managed_data = $object->relationships->get(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
+
+  // If object has a managed access predicate in RELS-EXT:
   if (count($managed_data) > 0) {
     $ma_profile_mname = $managed_data[0]['object']['value'];
     $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
 
+
     // Check user IP to see if it matches profile whitelist
-    $user_ip = explode(".", $_SERVER['REMOTE_ADDR']);
+    $user_ip = $_SERVER['REMOTE_ADDR'];
     $allowed_ips = explode(',', str_replace(' ', '', $ma_profile->ip_whitelist));
     $results = array();
     foreach ($allowed_ips as $allowed_ip) {
-      $allowed_ip = explode(".", $allowed_ip);
-      foreach($allowed_ip as $key => $value) {
-        watchdog("ma", "Testing octet {$key} = {$value}");
-        if ($value != "*" && $user_ip[$key] != $value) {
-          watchdog("ma", "Didn't match?");
-        }
-        else {
-          watchdog("ma", "Did match?");
-        }
+      if (strpos($allowed_ip, "/")) {
+        $result = ipCIDRCheck($user_ip, $allowed_ip);
       }
+      else { 
+        $result = ($user_ip == $allowed_ip);
+      }
+      $results[] = $result;
     }
-    
-    // Check user role to see if it matches profile rid
-    $ma_profile_rid = (int)$ma_profile->rid;
-    $admin_rid = (int)user_role_load_by_name('administrator')->rid;
-    $allowed_rids = array($admin_rid, $ma_profile_rid);
-    $user_rids = array_keys($GLOBALS['user']->roles);
-    if (count(array_intersect($allowed_rids, $user_rids)) < 1) {
-      drupal_goto("/managed-access/$ma_profile_mname");
+    if (!in_array(TRUE, $results, TRUE)) {
+
+      // Check user role to see if it matches profile rid
+      $ma_profile_rid = (int)$ma_profile->rid;
+      $admin_rid = (int)user_role_load_by_name('administrator')->rid;
+      $allowed_rids = array($admin_rid, $ma_profile_rid);
+      $user_rids = array_keys($GLOBALS['user']->roles);
+      if (count(array_intersect($allowed_rids, $user_rids)) < 1) {
+        drupal_goto("/managed-access/$ma_profile_mname");
+      }
     }
   }
 }
+
 
 function islandora_managed_access_soft403($profile_mname = FALSE) {
   if ($profile_mname == FALSE) {
@@ -647,4 +650,18 @@ EOQ;
   );
  
   return $content;
+}
+
+/*
+ * Helper function for determining whether user IP matches IP ranges allowed by MA profile.
+ * Used in islandora_managed_access_islandora_view_object()
+ * Retrieved from http://php.net/manual/en/ref.network.php#74656
+ */
+function ipCIDRCheck($ip, $cidr) {
+  list($net, $mask) = explode("/", $cidr);
+  $ip_net = ip2long ($net);
+  $ip_mask = ~((1 << (32 - $mask)) - 1);
+  $ip_ip = ip2long ($ip);
+  $ip_ip_net = $ip_ip & $ip_mask;
+  return ($ip_ip_net == $ip_net);
 }
