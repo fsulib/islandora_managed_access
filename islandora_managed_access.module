@@ -18,7 +18,6 @@ function islandora_managed_access_menu() {
     'type' => MENU_NORMAL_ITEM,
     'page callback' => 'drupal_goto',
     'page arguments' => array('admin/islandora/tools/managed_access/profiles'),
-    'menu_name' => FALSE,
   ); 
 
   $items['managed-access'] = array(
@@ -519,6 +518,25 @@ function islandora_managed_access_islandora_view_object($object) {
   if (count($managed_data) > 0) {
     $ma_profile_mname = $managed_data[0]['object']['value'];
     $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
+
+    // Check user IP to see if it matches profile whitelist
+    $user_ip = explode(".", $_SERVER['REMOTE_ADDR']);
+    $allowed_ips = explode(',', str_replace(' ', '', $ma_profile->ip_whitelist));
+    $results = array();
+    foreach ($allowed_ips as $allowed_ip) {
+      $allowed_ip = explode(".", $allowed_ip);
+      foreach($allowed_ip as $key => $value) {
+        watchdog("ma", "Testing octet {$key} = {$value}");
+        if ($value != "*" && $user_ip[$key] != $value) {
+          watchdog("ma", "Didn't match?");
+        }
+        else {
+          watchdog("ma", "Did match?");
+        }
+      }
+    }
+    
+    // Check user role to see if it matches profile rid
     $ma_profile_rid = (int)$ma_profile->rid;
     $admin_rid = (int)user_role_load_by_name('administrator')->rid;
     $allowed_rids = array($admin_rid, $ma_profile_rid);

@@ -55,7 +55,7 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#title' => t('IP Whitelist'),
     '#type' => 'textfield',
     '#default_value' => isset($profile->ip_whitelist) ? $profile->ip_whitelist : '',
-    '#description' => t('[NOT WORKING YET] A comma-separated list of IPs or IP ranges that should have access to the object.'),
+    '#description' => t('A comma-separated list of IPs or IP ranges that should have access to the object.'),
     '#required' => FALSE,
   );
   $form['justification_info'] = array(
