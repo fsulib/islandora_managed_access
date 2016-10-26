@@ -27,7 +27,6 @@ function islandora_managed_access_menu() {
     'menu_name' => FALSE,
   );
 
-  module_load_include('inc', 'islandora_managed_access', 'admin.form');
   $items['register-user'] = array(
     'title' => 'Register for access',
     'access callback' => TRUE,
@@ -381,11 +380,18 @@ class IslandoraManagedAccessObjectEntityUIController extends EntityDefaultUICont
     ksort($entities);
     $rows = array();
     foreach ($entities as $entity) {
-      $additional_cols = array($entity->profile);
+
+      $profile_id = $entity->profile;
+      $profile_obj = entity_load('islandora_managed_access_profile', array((int)$profile_id));
+      $profile = $profile_obj[(int)$profile_id]->hname;
+
+      $label = islandora_object_load($entity->pid)->label;    
+
+      $additional_cols = array($label, $profile);
       $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
     }
 
-    $additional_headers = array('Associated Profile');
+    $additional_headers = array('Label', 'Associated Profile');
     $render = array(
       '#theme' => 'table',
       '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
@@ -492,11 +498,21 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
     ksort($entities);
     $rows = array();
     foreach ($entities as $entity) {
-      $additional_cols = array($entity->name, user_load($entity->uid)->mail, $entity->institution, date('M d, Y', $entity->created_at));
+
+      $rids = array_keys(user_load($entity->uid)->roles);
+      $rid = array_pop($rids);
+      $query = new EntityFieldQuery();
+      $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('rid', $rid);
+      $results = $query->execute();
+      $profile_id = array_keys($results['islandora_managed_access_profile']);
+      $profile_obj = entity_load('islandora_managed_access_profile', array((int)$profile_id));
+      $profile = $profile_obj[(int)$profile_id]->hname;
+      
+      $additional_cols = array($profile, $entity->name, user_load($entity->uid)->mail, $entity->institution, date('M d, Y', $entity->created_at));
       $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
     }
 
-    $additional_headers = array('Name', 'Email', 'Institution', 'Created');
+    $additional_headers = array('Profile', 'Name', 'Email', 'Institution', 'Created');
     $render = array(
       '#theme' => 'table',
       '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
@@ -600,9 +616,9 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   $message = <<<EOQ
 <form action="/registration-success/$ma_profile->mname" method="post">
   <input type="text" name="name" placeholder="Name"><br/>
-  <input type="text" name="mail" placeholder="Email"><br/>
+  <input type="email" name="mail" placeholder="Email"><br/>
   <input type="text" name="inst" placeholder="Institution"><br/>
-  <input type="text" name="phone" placeholder="Phone #"><br/>
+  <input type="tel" name="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" title="XXX-XXX-XXXX" placeholder="Phone # (XXX-XXX-XXXX)"><br/>
   <input type="text" name="addr" placeholder="Address"><br/>
   <textarea rows="4" cols="50" name="req" placeholder="Request"></textarea><br/><br/>
   <input type="checkbox" required> I have read and agree to the terms of use.<br/><br/>

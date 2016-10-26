@@ -93,6 +93,25 @@ function islandora_managed_access_profile_form_validate($form, &$form_state) {
   if (isset($form_state['values']['lifetime']) && !is_numeric($form_state['values']['lifetime'])) {
     form_set_error('lifetime', t('Lifetime field must be an integer value.'));
   }
+  if (isset($form_state['values']['ip_whitelist'])) {
+    $ips = explode(',', str_replace(' ', '', $form_state['values']['ip_whitelist']));
+    foreach ($ips as $ip) {
+      if (strpos($ip, "/")) {
+        list($net, $mask) = explode("/", $ip); 
+        if (!filter_var($net, FILTER_VALIDATE_IP)) {
+          form_set_error('ip_whitelist', "\"{$net}\" in \"{$ip}\" is not a valid IP address.");
+        }
+        if (!filter_var($mask, FILTER_VALIDATE_INT)) {
+          form_set_error('ip_whitelist', "\"{$mask}\" in \"{$ip}\" is not a valid range.");
+        }
+      }
+      else {
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+          form_set_error('ip_whitelist', "\"{$ip}\" is not a valid IP address.");
+        }
+      }
+    }
+  }
 }
 
 function islandora_managed_access_profile_form_submit($form, &$form_state) {
@@ -156,8 +175,16 @@ function islandora_managed_access_object_form($form, &$form_state, $object = NUL
 }
 
 function islandora_managed_access_object_form_validate($form, &$form_state) {
-  if (isset($form_state['values']['pid']) && !strpos($form_state['values']['pid'], ":")) {
-    form_set_error('PID', t('PID has incorrect syntax.'));
+  if (isset($form_state['values']['pid']) && !islandora_object_load($form_state['values']['pid'])) {
+    form_set_error('pid', "\"{$form_state['values']['pid']}\" is not a valid PID.");
+  }
+  if (isset($form_state['values']['pid_whitelist']) && $form_state['values']['pid_whitelist'] != "") {
+    $pids = explode(',', str_replace(' ', '', $form_state['values']['pid_whitelist']));
+    foreach ($pids as $pid) {
+      if (!islandora_object_load($pid)) {
+        form_set_error('pid_whitelist', "\"{$pid}\" is not a valid PID.");
+      }
+    }
   }
 }
 
@@ -210,7 +237,7 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
     );
     $form['phone'] = array(
       '#title' => t('Phone Number'),
-      '#description' => t('Full phone number where you can be contacted.'),
+      '#description' => t('Full phone number where you can be contacted in \'XXX-XXX-XXXX\' format.'),
       '#type' => 'textfield',
       '#default_value' => isset($user->phone) ? $user->phone : '',
       '#required' => TRUE,
@@ -241,6 +268,12 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
 }
 
 function islandora_managed_access_user_form_validate($form, &$form_state) {
+  if (isset($form_state['values']['email']) && !valid_email_address($form_state['values']['email'])) {
+    form_set_error('email', "\"{$form_state['values']['email']}\" is not a valid email address.");
+  }
+  if (isset($form_state['values']['phone']) && !preg_match('/^[0-9]{3}-[0-9]{3}-[0-9]{4}$/', $form_state['values']['phone'])) {
+    form_set_error('phone', "\"{$form_state['values']['phone']}\" is not in 'XXX-XXX-XXXX' format.");
+  }
 }
 
 function islandora_managed_access_user_form_submit($form, &$form_state) {

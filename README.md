@@ -37,7 +37,7 @@ Now that an Islandora object is managed by an MA Profile, any user who attempts 
 2. They are logged in as a user that has the specific user role required by the MA Policy managing the object
 3. They have the Drupal "Administrator" role
 
-Administrators who need access to information about what users have registered to view managed objects can use the `/admin/islandora/tools/managed_access/users` admin menu, where all the metadata about MA Users is listed in a table (making this table sortable by columns is not yet implemented, but is planned).
+Administrators who need access to information about what users have registered to view managed objects can use the `/admin/islandora/tools/managed_access/users` admin menu, where all the metadata about MA Users is listed in a table.
 
 Please note that MA Objects and Users require an MA Profile to point to, so you may not create MA Objects or Users without first creating an MA Profile.
 
