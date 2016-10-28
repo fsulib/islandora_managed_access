@@ -115,9 +115,7 @@ function islandora_managed_access_profile_form_validate($form, &$form_state) {
 }
 
 function islandora_managed_access_profile_form_submit($form, &$form_state) {
-
   $profile = entity_ui_form_submit_build_entity($form, $form_state);
-
   $oldRole = isset($profile->rid) ? user_role_load($profile->rid) : '';
   if (empty($oldRole)) {
     $newRole = new stdClass();
@@ -125,7 +123,6 @@ function islandora_managed_access_profile_form_submit($form, &$form_state) {
     user_role_save($newRole);
     $profile->rid = user_role_load_by_name($form['role_name']['#value'])->rid;
   } 
-
   $profile->save();
   drupal_set_message(t('The "@hname" profile has been saved.', array('@hname' => $profile->hname)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/profiles';
@@ -147,6 +144,7 @@ function islandora_managed_access_object_form($form, &$form_state, $object = NUL
       '#default_value' => isset($object->pid) ? $object->pid : '',
       '#description' => t('PID of the Islandora object to be managed.'),
       '#required' => TRUE,
+      '#disabled' => isset($object->id) ? TRUE : FALSE,
     );
     $form['profile'] = array(
       '#title' => t('Associated Profile'),
@@ -155,13 +153,15 @@ function islandora_managed_access_object_form($form, &$form_state, $object = NUL
       '#default_value' => isset($object->profile) ? $object->profile : '',
       '#description' => t('Name of the Managed Access Profile associated with this object.'),
       '#required' => TRUE,
+      '#disabled' => isset($object->id) ? TRUE : FALSE,
     );
     $form['pid_whitelist'] = array(
       '#title' => t('PID Whitelist'),
       '#type' => 'textfield',
       '#default_value' => isset($object->pid_whitelist) ? $object->pid_whitelist : '',
-      '#description' => t('[NOT WORKING YET] If object is hierarchichal, specify PIDs that should NOT be managed in a comma-separated list.'),
+      '#description' => t('If object is hierarchichal, specify PIDs that should NOT be managed in a comma-separated list.'),
       '#required' => FALSE,
+      '#disabled' => isset($object->id) ? TRUE : FALSE,
     );
     $form['actions'] = array(
       '#type' => 'actions',
