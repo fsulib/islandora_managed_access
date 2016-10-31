@@ -205,6 +205,10 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
     return array();
   }
   else {
+    $refreshed_date = isset($user->refreshed_at) ? date('M d, Y', $user->refreshed_at) : FALSE;
+    $form['refresh_display'] = array(
+      '#markup' => isset($user->refreshed_at) ? "<p>Last refreshed at: {$refreshed_date}</p>" : '',
+    );
     $form['name'] = array(
       '#title' => t('Name'),
       '#type' => 'textfield',
@@ -284,6 +288,7 @@ function islandora_managed_access_user_form_submit($form, &$form_state) {
     IslandoraManagedAccessUserEntityController::save_new_ma_user($user_entity, $profile_entity[$profile_id], $form['email']['#value']);
   } 
   else {
+    $user_entity->refreshed_at = time();
     $user_entity->save();
   }
   drupal_set_message(t('@name has been saved.', array('@name' => $user_entity->name)));
