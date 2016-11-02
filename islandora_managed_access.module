@@ -2,7 +2,7 @@
 
 /**
  * @file
- * The islandora_managed_access moudule.
+ * The islandora_managed_access module.
  */
 
 /**
@@ -136,14 +136,36 @@ function islandora_managed_access_mail($key, &$message, $params) {
       global $base_url;
       $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
       $message['subject'] = "Account creation information";
-      $message['body'][] = "Hello, {$params['real_name']}!";
+      $message['body'][] = "Hello, {$params['real_name']}:";
       $message['body'][] = "";
       $message['body'][] = "A new account has been created for you at {$base_url}, please <a href=\"$base_url/user\">log in</a> with the following credentials:";
       $message['body'][] = "Username: {$params['username']}";
       $message['body'][] = "Password: {$params['password']}";
       $message['body'][] = "";
       $message['body'][] = "{$params['contact']}";
-    break;
+      break;
+
+    case 'warn_user':
+      global $base_url;
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['subject'] = "Your account will soon expire";
+      $message['body'][] = "Hello, {$params['real_name']}:";
+      $message['body'][] = "";
+      $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials will automatically expire in 7 days.";
+      $message['body'][] = "";
+      $message['body'][] = "{$params['contact']}";
+      break;
+
+    case 'delete_user':
+      global $base_url;
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['subject'] = "Your account has been deleted";
+      $message['body'][] = "Hello, {$params['real_name']}:";
+      $message['body'][] = "";
+      $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials has expired.";
+      $message['body'][] = "";
+      $message['body'][] = "{$params['contact']}";
+      break;
 
   }
 }
@@ -156,380 +178,31 @@ function islandora_managed_access_cron() {
   $users = entity_load('islandora_managed_access_user');
   $now = time();
   foreach ($users as $user) {
+    $ma_profile = islandora_managed_access_get_users_profile($user);
     $drupal_user = user_load($user->uid);
-    $drupal_user_roles = array_keys($drupal_user->roles);
-    $ma_role = islandora_managed_access_get_profile_by_role_id(array_pop($drupal_user_roles));
-    $lifetime = $ma_role->lifetime;
+    $lifetime = $ma_profile->lifetime;
     $expiry_fmt = "+{$lifetime} days";
     $expiry = strtotime($expiry_fmt, $user->refreshed_at);
+    $warning_start = strtotime('-7 days', $expiry);
+    $warning_stop = strtotime('-6 days', $expiry);
     if ($lifetime == 0) {
       break;
     }
-    else if ($expiry < $now) {
+    else if ($now > $warning_start && $now < $warning_stop) {
+      watchdog("islandora_managed_access", "Warning managed access user '{$user->name}.'"); 
+      $params = array(
+        'real_name' => $user->name,
+        'profile_name' => $ma_profile->hname,
+        'contact' => $ma_profile->contact_info,
+      );
+      $email = $drupal_user->mail;
+      $from = variable_get('site_mail', 'admin@example.com');
+      drupal_mail('islandora_managed_access', 'warn_user', $email, language_default(), $params, $from, TRUE);
+    }
+    else if ($now > $expiry) {
       watchdog("islandora_managed_access", "Expiring managed access user '{$user->name}.'"); 
       $user->delete();
     }
-  }
-}
-
-/**
- * Check access permissions for Managed Access configurations.
- */
-function islandora_managed_access_admin_access_callback($op, $maentity = NULL, $account = NULL) {
-  if (user_access('administer managed access configuration', $account)) {
-    return TRUE;
-  }
-  return FALSE;
-}
-
-/**
- * Entity class for MA Profiles
- */ 
-class IslandoraManagedAccessProfileEntity extends Entity {
-}
-
-/**
- * Entity Controller class for MA Profiles
- */
-class IslandoraManagedAccessProfileEntityController extends EntityAPIController {
-
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    if (!isset($entity->id)) { 
-      $entity->created_at = time();
-    }
-    $entity->updated_at = time();
-    return parent::save($entity, $transaction);
-  }
-
-  public function delete($ids) {
-    $profiles = entity_load('islandora_managed_access_profile', $ids);
-    foreach ($profiles as $profile) {
-      user_role_delete(intval($profile->rid)); 
-      db_delete('islandora_managed_access_profile')->condition('id', $profile->id)->execute();
-    }
-  }
-
-}
-
-/**
- * Entity UI Controller class for MA Profiles
- */
-class IslandoraManagedAccessProfileEntityUIController extends EntityDefaultUIController {
-
-  public function hook_menu() {
-    $items = parent::hook_menu();
-    $items[$this->path]['type'] = MENU_LOCAL_TASK;
-    $items[$this->path]['weight'] = -2;
-    return $items;
-  }
-
-  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
-    $header = $additional_header;
-    array_unshift($header, t('Name'));
-    if (!empty($this->entityInfo['exportable'])) {
-      $header[] = t('Status');
-    }
-    $header[] = array('data' => t('Operations'), 'colspan' => $this->operationCount());
-    return $header;
-  }
-
-  public function overviewTable($conditions = array()) {
-    $query = new EntityFieldQuery();
-    $query->entityCondition('entity_type', $this->entityType);
-    foreach ($conditions as $key => $value) {
-      $query->propertyCondition($key, $value);
-    }
-    if ($this->overviewPagerLimit) {
-      $query->pager($this->overviewPagerLimit);
-    }
-    $results = $query->execute();
-    $ids = isset($results[$this->entityType]) ? array_keys($results[$this->entityType]) : array();
-    $entities = $ids ? entity_load($this->entityType, $ids) : array();
-    ksort($entities);
-    $rows = array();
-    foreach ($entities as $entity) {
-      $additional_cols = array($entity->mname, user_role_load($entity->rid)->name);
-      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
-    }
-
-    $additional_headers = array('Machine Name', 'Associated Role');
-    $render = array(
-      '#theme' => 'table',
-      '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
-      '#rows' => $rows,
-      '#empty' => t('None.'),
-    );
-    return $render;
-  }
-}
-
-/**
- * Entity class for MA Objects
- */
-class IslandoraManagedAccessObjectEntity extends Entity {
-}
-
-/**
- * Entity Controller class for MA Objects
- */
-class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
-
-  // Applies MA Profile policy to single PID
-  public static function manageIslandoraObject($pid, $profile_mname) {
-    watchdog("ma", "Managing Islandora object $pid");   
-    $object = islandora_object_load($pid);
-    $object->relationships->add(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile', $profile_mname, RELS_TYPE_PLAIN_LITERAL);
-  }
-
-  // Applies MA Profile policy to single PID
-  public static function unmanageIslandoraObject($pid) {
-    watchdog("ma", "Unmanaging Islandora object $pid");   
-    $object = islandora_object_load($pid);
-    $object->relationships->remove(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
-  }
-
-  // Gets all child PIDs of object
-  public static function getChildPids($entity) {
-    // Run SPARQL query that retrieves <fedora:isConstituentOf rdf:resource="info:fedora/fsu:273671"></fedora:isConstituentOf>
-    // for compound objects, or <fedora:isMemberOf rdf:resource="info:fedora/fsu:159278"></fedora:isMemberOf> for newspapers/serials
-    // Good example query: https://gist.github.com/jordandukart/4ba9593f7ead5800dd26ffe23a736ee2
-    watchdog("ma", "getting child pids");   
-    $root_pid = $entity->pid;
-    $pids = array();
-    // Not currently actually getting child pids
-    //$pids = array("fsu:child1", "fsu:child2", "fsu:child3");
-    $pids[] = $root_pid;
-    return $pids;
-  }
-
-  // Removes & reapplies MA Profile policy on Islandora object
-  public static function remanageMAObject($entity) {
-    self::unmanageMAObject($entity);
-    self::manageMAObject($entity);
-  }
-
-  // Applies MA Profile policy on Islandora object
-  public static function manageMAObject($entity) {
-    $children = self::getChildPids($entity);
-    $profile = entity_load('islandora_managed_access_profile', array($entity->profile));
-    $profile_mname = $profile[$entity->profile]->mname;
-    /*
-    // This removes the root pid for some reason (because you added it to the list of children?)
-    $whitelisted_string = $entity->pid_whitelist;
-    $whitelisted_array = explode(",", str_replace(" ", "", $whitelisted_string));
-    foreach ($whitelisted_array as $pid) {
-      unset($children[array_search($pid, $children)]);
-    }
-    */
-    foreach ($children as $child) {
-      self::manageIslandoraObject($child, $profile_mname); 
-    }
-  }
-  
-  // Removes MA Profile policy from Islandora object
-  public static function unmanageMAObject($entity) {
-    $children = self::getChildPids($entity);
-    foreach ($children as $child) {
-      self::unmanageIslandoraObject($child); 
-    }
-  }
-
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    if (!isset($entity->id)) { 
-      $entity->created_at = time();
-    }
-    $entity->updated_at = time();
-    self::remanageMAObject($entity);
-    return parent::save($entity, $transaction);
-  }
-
-  public function delete($ids) {
-    $objects = entity_load('islandora_managed_access_object', $ids);
-    foreach ($objects as $object) {
-      self::unmanageMAObject($object);
-      db_delete('islandora_managed_access_object')->condition('id', $object->id)->execute();
-    }
-  }
-
-}
-
-/**
- * Entity UI Controller class for MA Objects
- */
-class IslandoraManagedAccessObjectEntityUIController extends EntityDefaultUIController {
-
-  public function hook_menu() {
-    $items = parent::hook_menu();
-    $items[$this->path]['type'] = MENU_LOCAL_TASK;
-    $items[$this->path]['weight'] = -1;
-    return $items;
-  }
-
-  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
-    $header = $additional_header;
-    array_unshift($header, t('PID'));
-    if (!empty($this->entityInfo['exportable'])) {
-      $header[] = t('Status');
-    }
-    $header[] = array('data' => t('Operations'), 'colspan' => $this->operationCount());
-    return $header;
-  }
-
-  public function overviewTable($conditions = array()) {
-    $query = new EntityFieldQuery();
-    $query->entityCondition('entity_type', $this->entityType);
-    foreach ($conditions as $key => $value) {
-      $query->propertyCondition($key, $value);
-    }
-    if ($this->overviewPagerLimit) {
-      $query->pager($this->overviewPagerLimit);
-    }
-    $results = $query->execute();
-    $ids = isset($results[$this->entityType]) ? array_keys($results[$this->entityType]) : array();
-    $entities = $ids ? entity_load($this->entityType, $ids) : array();
-    ksort($entities);
-    $rows = array();
-    foreach ($entities as $entity) {
-
-      $profile_id = $entity->profile;
-      $profile_obj = entity_load('islandora_managed_access_profile', array((int)$profile_id));
-      $profile = $profile_obj[(int)$profile_id]->hname;
-
-      $label = islandora_object_load($entity->pid)->label;    
-
-      $additional_cols = array($label, $profile);
-      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
-    }
-
-    $additional_headers = array('Label', 'Associated Profile');
-    $render = array(
-      '#theme' => 'table',
-      '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
-      '#rows' => $rows,
-      '#empty' => t('None.'),
-    );
-    return $render;
-  }
-}
-
-/**
- * Entity class for MA Users
- */
-class IslandoraManagedAccessUserEntity extends Entity {
-}
-
-/**
- * Entity Controller class for MA Users
- */
-class IslandoraManagedAccessUserEntityController extends EntityAPIController {
-  public static function save_new_ma_user($ma_user, $ma_profile, $email) {
-    $role = user_role_load($ma_profile->rid);
-    $username = $role->name . "_" . time(); 
-    $password = rand(100000000000, 999999999999);
-    $fields = array(
-      'name' => $username,
-      'mail' => $email,
-      'pass' => $password,
-      'status' => 1,
-      'roles' => array(
-        DRUPAL_AUTHENTICATED_RID => 'authenticated user',
-        $role->rid => $role->name,
-      ),
-    );
-    $account = user_save(NULL, $fields);
-    $ma_user->uid = $account->uid;
-    $ma_user->save();
-
-    $params = array(
-      'real_name' => $ma_user->name,
-      'username' => $username,
-      'password' => $password,
-      'contact' => $ma_profile->contact_info,
-    );
-    $from = variable_get('site_mail', 'admin@example.com');
-    drupal_mail('islandora_managed_access', 'notify_new_user', $email, language_default(), $params, $from, TRUE);
-
-    return array('ma_user' => $ma_user, 'drupal_user' => $account, 'password' => $password);
-  }
-
-  public function save($entity, DatabaseTransaction $transaction = NULL) {
-    if (!isset($entity->id)) { 
-      $entity->created_at = time();
-      $entity->refreshed_at = time();
-    }
-    $entity->updated_at = time();
-    return parent::save($entity, $transaction);
-  }
-
-  public function delete($ids) {
-    $users = entity_load('islandora_managed_access_user', $ids);
-    foreach ($users as $user) {
-      user_delete(intval($user->uid)); 
-      db_delete('islandora_managed_access_user')->condition('id', $user->id)->execute();
-    }
-  }
-
-}
-
-/**
- * Entity UI Controller class for MA Users
- */
-class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIController {
-
-  public function hook_menu() {
-    $items = parent::hook_menu();
-    $items[$this->path]['type'] = MENU_LOCAL_TASK;
-    $items[$this->path]['weight'] = 0;
-    return $items;
-  }
-
-  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
-    $header = $additional_header;
-    array_unshift($header, t('UID'));
-    if (!empty($this->entityInfo['exportable'])) {
-      $header[] = t('Status');
-    }
-    $header[] = array('data' => t('Operations'), 'colspan' => $this->operationCount());
-    return $header;
-  }
-
-  public function overviewTable($conditions = array()) {
-    $query = new EntityFieldQuery();
-    $query->entityCondition('entity_type', $this->entityType);
-    foreach ($conditions as $key => $value) {
-      $query->propertyCondition($key, $value);
-    }
-    if ($this->overviewPagerLimit) {
-      $query->pager($this->overviewPagerLimit);
-    }
-    $results = $query->execute();
-    $ids = isset($results[$this->entityType]) ? array_keys($results[$this->entityType]) : array();
-    $entities = $ids ? entity_load($this->entityType, $ids) : array();
-    ksort($entities);
-    $rows = array();
-    foreach ($entities as $entity) {
-
-      $rids = array_keys(user_load($entity->uid)->roles);
-      $rid = array_pop($rids);
-      $query = new EntityFieldQuery();
-      $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('rid', $rid);
-      $results = $query->execute();
-      $profile_id = array_keys($results['islandora_managed_access_profile']);
-      $profile_obj = entity_load('islandora_managed_access_profile', array((int)$profile_id));
-      $profile = $profile_obj[(int)$profile_id]->hname;
-      
-      $additional_cols = array($profile, $entity->name, user_load($entity->uid)->mail, $entity->institution, date('M d, Y', $entity->created_at));
-      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
-    }
-
-    $additional_headers = array('Profile', 'Name', 'Email', 'Institution', 'Created');
-    $render = array(
-      '#theme' => 'table',
-      '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
-      '#rows' => $rows,
-      '#empty' => t('None.'),
-    );
-    return $render;
   }
 }
 
@@ -566,6 +239,18 @@ function islandora_managed_access_islandora_view_object($object) {
       }
     }
   }
+}
+
+# utilities
+
+/**
+ * Check access permissions for Managed Access configurations.
+ */
+function islandora_managed_access_admin_access_callback($op, $maentity = NULL, $account = NULL) {
+  if (user_access('administer managed access configuration', $account)) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 function islandora_managed_access_object_is_managed($object) {
@@ -649,6 +334,12 @@ function islandora_managed_access_get_profile_by_role_id($ma_profile_rid) {
   else {
     return NULL;
   }
+}
+
+function islandora_managed_access_get_users_profile($ma_user) {
+  $drupal_user = user_load($ma_user->uid);
+  $drupal_user_roles = array_keys($drupal_user->roles);
+  return islandora_managed_access_get_profile_by_role_id(array_pop($drupal_user_roles));
 }
 
 function islandora_managed_access_register_user($ma_profile_mname) {
