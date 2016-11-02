@@ -235,7 +235,7 @@ function islandora_managed_access_islandora_view_object($object) {
       $allowed_rids = array($admin_rid, $ma_profile_rid);
       $user_rids = array_keys($GLOBALS['user']->roles);
       if (count(array_intersect($allowed_rids, $user_rids)) < 1) {
-        drupal_goto("/managed-access/$ma_profile_mname");
+        drupal_goto("/managed-access/$ma_profile->mname");
       }
     }
   }

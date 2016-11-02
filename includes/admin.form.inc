@@ -83,7 +83,7 @@ function islandora_managed_access_profile_form_validate($form, &$form_state) {
   if (isset($form_state['values']['lifetime']) && !is_numeric($form_state['values']['lifetime'])) {
     form_set_error('lifetime', t('Lifetime field must be an integer value.'));
   }
-  if (isset($form_state['values']['ip_whitelist'])) {
+  if (isset($form_state['values']['ip_whitelist']) && $form_state['values']['ip_whitelist'] != "") {
     $ips = explode(',', str_replace(' ', '', $form_state['values']['ip_whitelist']));
     foreach ($ips as $ip) {
       if (strpos($ip, "/")) {
