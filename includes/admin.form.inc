@@ -5,8 +5,6 @@
  * Admin form for the islandora_managed_access.module
  */
 
-module_load_include('inc', 'islandora_managed_access', 'includes/utilities');
-
 /**
  * MA Profile form
  */

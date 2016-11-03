@@ -3,7 +3,6 @@ description = "Create and manage temporary users for restricted objects."
 dependencies[] = islandora
 dependencies[] = entity
 files[] = includes/admin.form.inc 
-files[] = includes/utilities.inc 
 files[] = includes/islandora_managed_access_profile.entity.inc 
 files[] = includes/islandora_managed_access_object.entity.inc 
 files[] = includes/islandora_managed_access_user.entity.inc 
