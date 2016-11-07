@@ -1,6 +1,8 @@
 # Islandora Managed Access 
 Islandora module for managing temporary access to restricted objects
 
+[View a demo of this module on YouTube](https://youtu.be/Oer2fRvhGsM)
+
 ## Introduction
 The Islandora Managed Access module was created to fit a use case where certain Islandora objects should show up in collection browsing and search results, but require a user to register an account in order to view said object so that repository administrators may keep track of who is looking at it (similar in concept to an archival reading room). This may be due to intellectual property involved, or perhaps the object in question contains sensitive data (such as human subjects). Using the Islandora Managed Access module, you can manage users' access to specific objects by requiring them to log in to see it, and keep track of the data provided by those users through the administrative interface.
 
