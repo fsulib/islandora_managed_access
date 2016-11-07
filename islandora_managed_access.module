@@ -316,8 +316,10 @@ function islandora_managed_access_get_profile_by_machine_name($ma_profile_mname)
   $query = new EntityFieldQuery();
   $result = $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('mname', $ma_profile_mname)->execute();
   if ($result) {
-    $ma_profile_id = array_keys($result['islandora_managed_access_profile'])[0];
-    return entity_load('islandora_managed_access_profile', array($ma_profile_id))[$ma_profile_id];
+    $ma_profile_array = array_keys($result['islandora_managed_access_profile']);
+    $ma_profile_id = $ma_profile_array[0];
+    $ma_profiles = entity_load('islandora_managed_access_profile', array($ma_profile_id));
+    return $ma_profiles[$ma_profile_id];
   }
   else {
     return NULL;
@@ -328,8 +330,10 @@ function islandora_managed_access_get_profile_by_role_id($ma_profile_rid) {
   $query = new EntityFieldQuery();
   $result = $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('rid', $ma_profile_rid)->execute();
   if ($result) {
-    $ma_profile_id = array_keys($result['islandora_managed_access_profile'])[0];
-    return entity_load('islandora_managed_access_profile', array($ma_profile_id))[$ma_profile_id];
+    $ma_profile_array = array_keys($result['islandora_managed_access_profile']);
+    $ma_profile_id = $ma_profile_array[0];
+    $ma_profile = entity_load('islandora_managed_access_profile', array($ma_profile_id));
+    return $ma_profile[$ma_profile_id];
   }
   else {
     return NULL;
