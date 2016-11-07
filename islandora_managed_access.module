@@ -188,7 +188,7 @@ function islandora_managed_access_cron() {
     if ($lifetime == 0) {
       break;
     }
-    else if ($now > $warning_start && $now < $warning_stop) {
+    elseif ($now > $warning_start && $now < $warning_stop) {
       watchdog("islandora_managed_access", "Warning managed access user '{$user->name}.'"); 
       $params = array(
         'real_name' => $user->name,
@@ -199,7 +199,7 @@ function islandora_managed_access_cron() {
       $from = variable_get('site_mail', 'admin@example.com');
       drupal_mail('islandora_managed_access', 'warn_user', $email, language_default(), $params, $from, TRUE);
     }
-    else if ($now > $expiry) {
+    elseif ($now > $expiry) {
       watchdog("islandora_managed_access", "Expiring managed access user '{$user->name}.'"); 
       $user->delete();
     }
@@ -221,7 +221,7 @@ function islandora_managed_access_islandora_view_object($object) {
     $results = array();
     foreach ($allowed_ips as $allowed_ip) {
       if (strpos($allowed_ip, "/")) {
-        $result = ipCIDRCheck($user_ip, $allowed_ip);
+        $result = ip_cidr_check($user_ip, $allowed_ip);
       }
       else { 
         $result = ($user_ip == $allowed_ip);
@@ -404,11 +404,11 @@ EOQ;
  * Used in islandora_managed_access_islandora_view_object()
  * Retrieved from http://php.net/manual/en/ref.network.php#74656
  */
-function ipCIDRCheck($ip, $cidr) {
+function ip_cidr_check($ip, $cidr) {
   list($net, $mask) = explode("/", $cidr);
-  $ip_net = ip2long ($net);
+  $ip_net = ip2long($net);
   $ip_mask = ~((1 << (32 - $mask)) - 1);
-  $ip_ip = ip2long ($ip);
+  $ip_ip = ip2long($ip);
   $ip_ip_net = $ip_ip & $ip_mask;
   return ($ip_ip_net == $ip_net);
 }

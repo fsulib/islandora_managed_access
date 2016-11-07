@@ -76,7 +76,7 @@ EOQ;
     $children = self::getChildPids($entity->pid);
     $pid_whitelist = explode(',', str_replace(' ', '', $entity->pid_whitelist));
     foreach ($pid_whitelist as $pid) {
-      if(($key = array_search($pid, $children)) !== false) {
+      if (($key = array_search($pid, $children)) !== FALSE) {
         unset($children[$key]);
       }
     }

@@ -104,11 +104,11 @@ function islandora_managed_access_profile_form_validate($form, &$form_state) {
 
 function islandora_managed_access_profile_form_submit($form, &$form_state) {
   $profile = entity_ui_form_submit_build_entity($form, $form_state);
-  $oldRole = isset($profile->rid) ? user_role_load($profile->rid) : '';
-  if (empty($oldRole)) {
-    $newRole = new stdClass();
-    $newRole->name = $form['role_name']['#value'];
-    user_role_save($newRole);
+  $old_role = isset($profile->rid) ? user_role_load($profile->rid) : '';
+  if (empty($old_role)) {
+    $new_role = new stdClass();
+    $new_role->name = $form['role_name']['#value'];
+    user_role_save($new_role);
     $profile->rid = user_role_load_by_name($form['role_name']['#value'])->rid;
   } 
   $profile->save();
