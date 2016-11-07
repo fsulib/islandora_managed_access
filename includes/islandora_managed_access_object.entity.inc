@@ -18,14 +18,12 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
 
   // Applies MA Profile policy to single PID
   public static function manageIslandoraObject($pid, $profile_mname) {
-    watchdog("ma", "Managing Islandora object $pid");   
     $object = islandora_object_load($pid);
     $object->relationships->add(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile', $profile_mname, RELS_TYPE_PLAIN_LITERAL);
   }
 
   // Applies MA Profile policy to single PID
   public static function unmanageIslandoraObject($pid) {
-    watchdog("ma", "Unmanaging Islandora object $pid");   
     $object = islandora_object_load($pid);
     $object->relationships->remove(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
   }
@@ -88,7 +86,6 @@ EOQ;
   // Applies MA Profile policy on Islandora object
   public static function manageMAObject($entity) {
     $children = self::getFilteredChildPids($entity);
-    watchdog("ma", json_encode($children));
     $profile = entity_load('islandora_managed_access_profile', array($entity->profile));
     $profile_mname = $profile[$entity->profile]->mname;
     foreach ($children as $child) {
