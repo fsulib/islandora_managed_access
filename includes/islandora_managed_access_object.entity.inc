@@ -31,38 +31,66 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
   }
 
   // Gets all child PIDs of object
-  public static function getChildPids($entity) {
-    // Run SPARQL query that retrieves <fedora:isConstituentOf rdf:resource="info:fedora/fsu:273671"></fedora:isConstituentOf>
-    // for compound objects, or <fedora:isMemberOf rdf:resource="info:fedora/fsu:159278"></fedora:isMemberOf> for newspapers/serials
-    // Good example query: https://gist.github.com/jordandukart/4ba9593f7ead5800dd26ffe23a736ee2
-    watchdog("ma", "getting child pids");   
-    $root_pid = $entity->pid;
+  public static function getChildPids($root_pid) {
+    $root_cmodel = islandora_object_load($root_pid)->models[0];
+    switch ($root_cmodel) {
+      case "islandora:collectionCModel":
+        $predicate = "<fedora-rels-ext:isMemberOfCollection>";
+        break;
+      case "islandora:compoundCModel":
+        $predicate = "<fedora-rels-ext:isConstituentOf>";
+        break;
+      case "islandora:newspaperCModel":
+        $predicate = "<fedora-rels-ext:isMemberOf>";
+        break;
+      case "islandora:geneticEditionCModel":
+        $predicate = "<fedora-rels-ext:isMemberOf>";
+        break;
+      default:
+        $predicate = FALSE;
+    }
     $pids = array();
-    // Not currently actually getting child pids
-    //$pids = array("fsu:child1", "fsu:child2", "fsu:child3");
     $pids[] = $root_pid;
-    return $pids;
+    if ($predicate) {
+      $query = <<<EOQ
+SELECT ?child FROM <#ri> WHERE {
+  ?child $predicate <info:fedora/$root_pid>
+}
+EOQ;
+      $connection = islandora_get_tuque_connection();
+      $results = $connection->repository->ri->sparqlQuery($query);
+      foreach ($results as $result) {
+        $result = $result['child']['value'];
+        $pids[] = $result;
+      
+        // Go one level deeper for 3 tiered cmodels like newspapers & genetic editions
+        $subchildren = self::getChildPids($result);
+        foreach ($subchildren as $subchild) {
+          $pids[] = $subchild;
+        }
+      }
+    }
+    return array_unique($pids);
   }
-
-  // Removes & reapplies MA Profile policy on Islandora object
-  public static function remanageMAObject($entity) {
-    self::unmanageMAObject($entity);
-    self::manageMAObject($entity);
+  
+  // Call self::getChildPids but filter out whitelisted objects
+  public static function getFilteredChildPids($entity) {
+    $children = self::getChildPids($entity->pid);
+    $pid_whitelist = explode(',', str_replace(' ', '', $entity->pid_whitelist));
+    foreach ($pid_whitelist as $pid) {
+      if(($key = array_search($pid, $children)) !== false) {
+        unset($children[$key]);
+      }
+    }
+    return $children;
   }
 
   // Applies MA Profile policy on Islandora object
   public static function manageMAObject($entity) {
-    $children = self::getChildPids($entity);
+    $children = self::getFilteredChildPids($entity);
+    watchdog("ma", json_encode($children));
     $profile = entity_load('islandora_managed_access_profile', array($entity->profile));
     $profile_mname = $profile[$entity->profile]->mname;
-    /*
-    // This removes the root pid for some reason (because you added it to the list of children?)
-    $whitelisted_string = $entity->pid_whitelist;
-    $whitelisted_array = explode(",", str_replace(" ", "", $whitelisted_string));
-    foreach ($whitelisted_array as $pid) {
-      unset($children[array_search($pid, $children)]);
-    }
-    */
     foreach ($children as $child) {
       self::manageIslandoraObject($child, $profile_mname); 
     }
@@ -70,10 +98,16 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
   
   // Removes MA Profile policy from Islandora object
   public static function unmanageMAObject($entity) {
-    $children = self::getChildPids($entity);
+    $children = self::getChildPids($entity->pid);
     foreach ($children as $child) {
       self::unmanageIslandoraObject($child); 
     }
+  }
+
+  // Removes & reapplies MA Profile policy on Islandora object
+  public static function remanageMAObject($entity) {
+    self::unmanageMAObject($entity);
+    self::manageMAObject($entity);
   }
 
   public function save($entity, DatabaseTransaction $transaction = NULL) {
