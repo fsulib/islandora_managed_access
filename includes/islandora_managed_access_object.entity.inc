@@ -33,16 +33,16 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
     $root_cmodel = islandora_object_load($root_pid)->models[0];
     switch ($root_cmodel) {
       case "islandora:collectionCModel":
-        $predicate = "<fedora-rels-ext:isMemberOfCollection>";
+        $predicate = "<info:fedora/fedora-system:def/relations-external#isMemberOfCollection>";
         break;
       case "islandora:compoundCModel":
-        $predicate = "<fedora-rels-ext:isConstituentOf>";
+        $predicate = "<info:fedora/fedora-system:def/relations-external#isConstituentOf>";
         break;
       case "islandora:newspaperCModel":
-        $predicate = "<fedora-rels-ext:isMemberOf>";
+        $predicate = "<info:fedora/fedora-system:def/relations-external#isMemberOf>";
         break;
       case "islandora:geneticEditionCModel":
-        $predicate = "<fedora-rels-ext:isMemberOf>";
+        $predicate = "<info:fedora/fedora-system:def/relations-external#isMemberOf>";
         break;
       default:
         $predicate = FALSE;
