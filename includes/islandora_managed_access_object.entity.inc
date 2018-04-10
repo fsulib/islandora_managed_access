@@ -22,7 +22,7 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
     $object->relationships->add(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile', $profile_mname, RELS_TYPE_PLAIN_LITERAL);
   }
 
-  // Applies MA Profile policy to single PID
+  // Removes MA Profile policy from single PID
   public static function unmanageIslandoraObject($pid) {
     $object = islandora_object_load($pid);
     $object->relationships->remove(ISLANDORA_RELS_EXT_URI, 'hasManagedAccessProfile');
@@ -60,8 +60,6 @@ EOQ;
       foreach ($results as $result) {
         $result = $result['child']['value'];
         $pids[] = $result;
-      
-        // Go one level deeper for 3 tiered cmodels like newspapers & genetic editions
         $subchildren = self::getChildPids($result);
         foreach ($subchildren as $subchild) {
           $pids[] = $subchild;
