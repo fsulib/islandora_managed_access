@@ -23,7 +23,7 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
       'name' => $username,
       'mail' => $email,
       'pass' => $password,
-      'status' => 1,
+      'status' => $ma_profile->user_active_by_default,
       'roles' => array(
         DRUPAL_AUTHENTICATED_RID => 'authenticated user',
         $role->rid => $role->name,

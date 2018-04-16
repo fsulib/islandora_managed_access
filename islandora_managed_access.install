@@ -58,6 +58,12 @@ function islandora_managed_access_schema() {
         'size' => 'big',
         'not null' => FALSE,
       ),
+      'user_active_by_default' => array(
+        'description' => 'Whether or not this profile requires manual activation of users',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+
       'justification_info' => array(
         'description' => 'Blurb explaining why objects are managed access',
         'type' => 'text',
@@ -147,6 +153,11 @@ function islandora_managed_access_schema() {
       ),
       'refreshed_at' => array(
         'description' => 'Date and time the user was last refreshed',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'active' => array(
+        'description' => 'Whether or not the user is active',
         'type' => 'int',
         'not null' => TRUE,
       ),
