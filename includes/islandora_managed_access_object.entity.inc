@@ -41,7 +41,13 @@ class IslandoraManagedAccessObjectEntityController extends EntityAPIController {
       case "islandora:newspaperCModel":
         $predicate = "<info:fedora/fedora-system:def/relations-external#isMemberOf>";
         break;
-      case "islandora:geneticEditionCModel":
+      case "islandora:newspaperIssueCModel":
+        $predicate = "<info:fedora/fedora-system:def/relations-external#isMemberOf>";
+        break;
+      case "islandora:comparativeEditionCModel":
+        $predicate = "<info:fedora/fedora-system:def/relations-external#isMemberOf>";
+        break;
+      case "islandora:comparativeEditionWitnessCModel":
         $predicate = "<info:fedora/fedora-system:def/relations-external#isMemberOf>";
         break;
       default:
