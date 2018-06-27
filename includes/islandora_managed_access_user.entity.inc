@@ -32,23 +32,21 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
     $account = user_save(NULL, $fields);
     $ma_user->uid = $account->uid;
     $ma_user->save();
+
     $params = array(
-      'real_name' => $ma_user->name,
-      'username' => $username,
-      'password' => $password,
-      'contact' => $ma_profile->contact_info,
+      'ma_user_id' => $ma_user->id,
     );
 
     watchdog("Islandora Managed Access", "Managed Access User '{$ma_user->name}' created.");
  
-    $from = variable_get('site_mail', 'admin@example.com');
-    #drupal_mail('islandora_managed_access', 'notify_new_user_admin', $email, language_default(), $params, $from, TRUE);
+    $from = $ma_profile->contact_email;
+    drupal_mail('islandora_managed_access', 'notify_new_user_admin', $ma_profile->contact_email, language_default(), $params, $from, TRUE);
 
     if ($ma_profile->user_active_by_default == 1) {
       IslandoraManagedAccessUserEntityController::activate_ma_user($ma_user);
     }
     else {
-      #drupal_mail('islandora_managed_access', 'notify_inactive_new_user', $email, language_default(), $params, $from, TRUE);
+      drupal_mail('islandora_managed_access', 'notify_inactive_new_user', $email, language_default(), $params, $from, TRUE);
     }
 
     return array('ma_user' => $ma_user, 'drupal_user' => $account, 'password' => $password);
@@ -56,20 +54,34 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
   
   public static function activate_ma_user($ma_user) {
     watchdog("Islandora Managed Access", "Managed Access User '{$ma_user->name}' activated.");
-    drupal_set_message("activated");
     $drupal_user = user_load($ma_user->uid);
     $drupal_user->status = 1;
     $ma_user->active = 1;
-    #drupal_mail('islandora_managed_access', 'notify_user_activated', $email, language_default(), $params, $from, TRUE);
+    $params = array('ma_user_id' => $ma_user->id);
+    $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
+    drupal_mail('islandora_managed_access', 'notify_user_activated', $drupal_user->mail, language_default(), $params, $ma_profile->contact_email, TRUE);
   }
 
   public static function deactivate_ma_user($ma_user) {
     watchdog("Islandora Managed Access", "Managed Access User '{$ma_user->name}' deactivated.");
-    drupal_set_message("deactivated");
     $drupal_user = user_load($ma_user->uid);
     $drupal_user->status = 0;
     $ma_user->active = 0;
-    #drupal_mail('islandora_managed_access', 'notify_user_deactivated', $email, language_default(), $params, $from, TRUE);
+    $params = array('ma_user_id' => $ma_user->id);
+    $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
+    drupal_mail('islandora_managed_access', 'notify_user_deactivated', $drupal_user->mail, language_default(), $params, $ma_profile->contact_email, TRUE);
+  }
+
+  public static function get_profile_of_ma_user($ma_user) {
+    $rids = array_keys(user_load($ma_user->uid)->roles);
+    $rid = array_pop($rids);
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('rid', $rid);
+    $results = $query->execute();
+    $profile_id = array_keys($results['islandora_managed_access_profile']);
+    $profile_obj = entity_load('islandora_managed_access_profile', array((int)$profile_id));
+    $profile = $profile_obj[(int)$profile_id];
+    return $profile;
   }
 
   public function save($entity, DatabaseTransaction $transaction = NULL) {

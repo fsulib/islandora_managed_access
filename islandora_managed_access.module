@@ -132,39 +132,87 @@ function islandora_managed_access_permission() {
 function islandora_managed_access_mail($key, &$message, $params) {
   switch ($key) {
 
-    case 'notify_new_user':
+    case 'notify_new_user_admin':
       global $base_url;
+      drupal_set_message('notify_new_user_admin');
+      $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
+      $ma_user = $ma_user_array["{$params['ma_user_id']}"];
+      $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
+      $drupal_user = user_load($ma_user->uid);
+
       $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
-      $message['subject'] = "Account creation information";
-      $message['body'][] = "Hello, {$params['real_name']}:";
+      $message['subject'] = "New Managed Access User created";
+      $message['body'][] = "A new Managed Access User has been created at {$base_url}:";
+      $message['body'][] = "Name: {$ma_user->name}";
+      $message['body'][] = "Affiliated Institution: {$ma_user->institution}";
+      $message['body'][] = "Request Information: {$ma_user->request_info}";
+      break;
+
+    case 'notify_inactive_new_user':
+      global $base_url;
+      drupal_set_message('notify_inactive_new_user');
+      $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
+      $ma_user = $ma_user_array["{$params['ma_user_id']}"];
+      $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
+      $drupal_user = user_load($ma_user->uid);
+
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['subject'] = "Your user account request has been recieved";
+      $message['body'][] = "Hello, {$ma_user->name},";
       $message['body'][] = "";
-      $message['body'][] = "A new account has been created for you at {$base_url}, please <a href=\"$base_url/user\">log in</a> with the following credentials:";
-      $message['body'][] = "Username: {$params['username']}";
-      $message['body'][] = "Password: {$params['password']}";
+      $message['body'][] = "Your request for a user account has been recieved. Please monitor this email account for your credentials once your account has been approved, and contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
+      break;
+
+    case 'notify_user_activated':
+      global $base_url;
+      drupal_set_message('notify_user_activated');
+      $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
+      $ma_user = $ma_user_array["{$params['ma_user_id']}"];
+      $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
+      $drupal_user = user_load($ma_user->uid);
+
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['subject'] = "Your user account has been activated";
+      $message['body'][] = "Hello, {$ma_user->name}:";
       $message['body'][] = "";
-      $message['body'][] = "{$params['contact']}";
+      $message['body'][] = "A new account with the user name '{$drupal_user->name}' has been created for you at {$base_url}. To log in, please go to <a href=\"{$base_url}/user\">{$base_url}/user</a> and request a new password using either this email address or the provided user name. Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
+      break;
+
+    case 'notify_user_deactivated':
+      global $base_url;
+      drupal_set_message('notify_user_deactivated');
+      $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
+      $ma_user = $ma_user_array["{$params['ma_user_id']}"];
+      $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
+      $drupal_user = user_load($ma_user->uid);
+
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['subject'] = "Your account has been deactivated";
+      $message['body'][] = "Hello, {$ma_user->name}:";
+      $message['body'][] = "";
+      $message['body'][] = "Your account at {$base_url} with the user name '{$drupal_user->name}' has been deactivated . Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
       break;
 
     case 'warn_user':
       global $base_url;
+
       $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
       $message['subject'] = "Your account will soon expire";
       $message['body'][] = "Hello, {$params['real_name']}:";
       $message['body'][] = "";
       $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials will automatically expire in 7 days.";
-      $message['body'][] = "";
-      $message['body'][] = "{$params['contact']}";
+      $message['body'][] = "Please contact {$params['contact_email']} for more information.";
       break;
 
     case 'delete_user':
       global $base_url;
+
       $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
       $message['subject'] = "Your account has been deleted";
       $message['body'][] = "Hello, {$params['real_name']}:";
       $message['body'][] = "";
       $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials has expired.";
-      $message['body'][] = "";
-      $message['body'][] = "{$params['contact']}";
+      $message['body'][] = "Please contact {$params['contact_email']} for more information.";
       break;
 
   }
@@ -193,7 +241,7 @@ function islandora_managed_access_cron() {
       $params = array(
         'real_name' => $user->name,
         'profile_name' => $ma_profile->hname,
-        'contact' => $ma_profile->contact_info,
+        'contact_email' => $ma_profile->contact_email,
       );
       $email = $drupal_user->mail;
       $from = variable_get('site_mail', 'admin@example.com');
@@ -280,10 +328,12 @@ function islandora_managed_access_info_message($ma_profile) {
 <h1>This record has certain access restrictions:</h1>
 <h2>Justification:</h2>
 <p>{$ma_profile->justification_info}</p>
-<h2>Usage:</h2>
+<h2>Usage Information:</h2>
 <p>{$ma_profile->usage_info}</p>
-<h2>Contact:</h2>
+<h2>Contact Information:</h2>
 <p>{$ma_profile->contact_info}</p>
+<h2>Contact Email:</h2>
+<p><a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a></p>
 EOM;
   return $message;
 }
@@ -391,7 +441,7 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   <li>Username: {$user_info['drupal_user']->name}</li>
   <li>Password: {$user_info['password']}</li>
 </ul>
-Your login information has also been sent to the email specified in the registration form.</p>
+Your login information has also been sent to the email specified in the registration form. Please contact {$ma_profile->contact_email} if you have any questions.</p>
 <a href="/user">
   <button>Log In</button>
 </a>
@@ -400,7 +450,7 @@ EOQ;
   else {
     $message = <<<EOQ
 <p>Thank you for registering, {$_POST['name']}!</p>
-<p>Site administrators will review your request for access shortly. Please monitor the provided email account ({$_POST['mail']}) for a message with your credentials once you have been approved.</p>
+<p>Site administrators will review your request for access shortly. Please monitor the provided email account (<a href='mailto:{$_POST['mail']}'>{$_POST['mail']}</a>) for a message with your credentials once you have been approved. Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 EOQ;
   }
 
