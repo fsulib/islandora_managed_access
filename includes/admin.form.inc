@@ -46,6 +46,13 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#description' => t('A comma-separated list of IPs or IP ranges that should have access to the object.'),
     '#required' => FALSE,
   );
+  $form['user_active_by_default'] = array(
+    '#title' => t('User active by default?'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($profile->user_active_by_default) ? $profile->user_active_by_default : FALSE,
+    '#description' => t('Check if you want users who register for objects managed by this profile to have user accounts created automatically.'),
+    '#required' => FALSE,
+  );
   $form['justification_info'] = array(
     '#title' => t('Justification Information'),
     '#type' => 'textarea',
@@ -220,6 +227,12 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
       '#required' => TRUE,
       '#disabled' => isset($user->id) ? TRUE : FALSE,
     );
+    $form['active'] = array(
+      '#title' => t('Active?'),
+      '#description' => t('Whether or not the user currently has access to relevant managed access objects.'),
+      '#type' => 'checkbox',
+      '#default_value' => isset($user->active) ? $user->active : FALSE,
+    );
     $form['institution'] = array(
       '#title' => t('Affiliated Institution'),
       '#description' => t('Name of organization that user is from.'),
@@ -248,6 +261,10 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
       '#default_value' => isset($user->request_info) ? $user->request_info : '',
       '#required' => TRUE,
     );
+    $form['hidden_id'] = array(
+      '#type' => 'hidden',
+      '#value' => isset($user->id) ? $user->id : FALSE,
+    );
     $form['actions'] = array(
       '#type' => 'actions',
       'submit' => array(
@@ -269,6 +286,20 @@ function islandora_managed_access_user_form_validate($form, &$form_state) {
 }
 
 function islandora_managed_access_user_form_submit($form, &$form_state) {
+  if ($form['hidden_id']['#value'] != FALSE) {
+    $old_user_entity = entity_load("islandora_managed_access_user", array($form['hidden_id']['#value']));
+    $old_activity_value = $old_user_entity["{$form['hidden_id']['#value']}"]->active; 
+    $new_activity_value = $form['active']['#value']; 
+    if ($old_activity_value != $new_activity_value) {
+      if ($old_activity_value == 1 && $new_activity_value == 0) {
+        $activity_delta = "deactivated";
+      }
+      if ($old_activity_value == 0 && $new_activity_value == 1) {
+        $activity_delta = "activated";
+      }
+    }
+  }
+
   $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
   if (!isset($user_entity->id)) { 
     $profile_id = $form['profile']['#value'];
@@ -279,6 +310,16 @@ function islandora_managed_access_user_form_submit($form, &$form_state) {
     $user_entity->refreshed_at = time();
     $user_entity->save();
   }
+
+  if (isset($activity_delta)) {
+    if ($activity_delta == 'activated') {
+      IslandoraManagedAccessUserEntityController::activate_ma_user($user_entity);
+    }
+    if ($activity_delta == 'deactivated') {
+      IslandoraManagedAccessUserEntityController::deactivate_ma_user($user_entity);
+    }
+  }
+
   drupal_set_message(t('@name has been saved.', array('@name' => $user_entity->name)));
   $form_state['redirect'] = 'admin/islandora/tools/managed_access/users';
 }

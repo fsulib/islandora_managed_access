@@ -201,7 +201,7 @@ function islandora_managed_access_cron() {
     }
     elseif ($now > $expiry) {
       watchdog("islandora_managed_access", "Expiring managed access user '{$user->name}.'"); 
-      $user->delete();
+      IslandoraManagedAccessUserEntityController::deactivate_ma_user($user);
     }
   }
 }
@@ -379,10 +379,12 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   $ma_user->phone = $_POST['phone'];
   $ma_user->address = $_POST['addr'];
   $ma_user->request_info = $_POST['req'];
+  $ma_user->active = $ma_profile->user_active_by_default;
   
   $user_info = IslandoraManagedAccessUserEntityController::save_new_ma_user($ma_user, $ma_profile, $_POST['mail']);
 
-  $message = <<<EOQ
+  if ($ma_user->active == 1) {
+    $message = <<<EOQ
 <p>Thank you for registering, {$_POST['name']}!</p>
 <p>You will now be able to log in and view the {$ma_profile->hname} materials using the following credentials:<br/>
 <ul>
@@ -394,6 +396,13 @@ Your login information has also been sent to the email specified in the registra
   <button>Log In</button>
 </a>
 EOQ;
+  }
+  else {
+    $message = <<<EOQ
+<p>Thank you for registering, {$_POST['name']}!</p>
+<p>Site administrators will review your request for access shortly. Please monitor the provided email account ({$_POST['mail']}) for a message with your credentials once you have been approved.</p>
+EOQ;
+  }
 
   $content['raw_markup'] = array(
     '#type' => 'markup',
