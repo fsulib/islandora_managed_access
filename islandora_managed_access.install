@@ -63,7 +63,11 @@ function islandora_managed_access_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
-
+      'contact_email' => array(
+        'description' => 'Email address of profile point of contact',
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
       'justification_info' => array(
         'description' => 'Blurb explaining why objects are managed access',
         'type' => 'text',

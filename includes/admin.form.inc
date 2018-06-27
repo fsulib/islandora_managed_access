@@ -53,6 +53,13 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#description' => t('Check if you want users who register for objects managed by this profile to have user accounts created automatically.'),
     '#required' => FALSE,
   );
+  $form['contact_email'] = array(
+    '#title' => t('Contact email'),
+    '#type' => 'textfield',
+    '#default_value' => isset($profile->contact_email) ? $profile->contact_email : "",
+    '#description' => t('Email address for profile point of contact.'),
+    '#required' => TRUE,
+  );
   $form['justification_info'] = array(
     '#title' => t('Justification Information'),
     '#type' => 'textarea',
