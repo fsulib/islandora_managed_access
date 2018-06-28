@@ -55,7 +55,7 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
   public static function activate_ma_user($ma_user) {
     watchdog("Islandora Managed Access", "Managed Access User '{$ma_user->name}' activated.");
     $drupal_user = user_load($ma_user->uid);
-    $drupal_user->status = 1;
+    user_save($drupal_user, array('status' => 1));
     $ma_user->active = 1;
     $params = array('ma_user_id' => $ma_user->id);
     $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
@@ -65,7 +65,7 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
   public static function deactivate_ma_user($ma_user) {
     watchdog("Islandora Managed Access", "Managed Access User '{$ma_user->name}' deactivated.");
     $drupal_user = user_load($ma_user->uid);
-    $drupal_user->status = 0;
+    user_save($drupal_user, array('status' => 0));
     $ma_user->active = 0;
     $params = array('ma_user_id' => $ma_user->id);
     $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
@@ -103,9 +103,6 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
         'profile_name' => $ma_profile->hname,
         'contact' => $ma_profile->contact_info,
       );
-      $email = $drupal_user->mail;
-      $from = variable_get('site_mail', 'admin@example.com');
-      drupal_mail('islandora_managed_access', 'delete_user', $email, language_default(), $params, $from, TRUE);
       user_delete(intval($user->uid)); 
       db_delete('islandora_managed_access_user')->condition('id', $user->id)->execute();
     }
