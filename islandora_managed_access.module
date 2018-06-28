@@ -145,7 +145,6 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['body'][] = "Name: {$ma_user->name}";
       $message['body'][] = "Affiliated Institution: {$ma_user->institution}";
       $message['body'][] = "Request Information: {$ma_user->request_info}";
-      $message['body'][] = "Go to {$base_url}/admin/islandora/tools/managed_access/profiles/manage/{$ma_user->id} to view this Managed Access User.";
       break;
 
     case 'notify_inactive_new_user':
