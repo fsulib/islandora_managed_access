@@ -141,11 +141,11 @@ function islandora_managed_access_mail($key, &$message, $params) {
 
       $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
       $message['subject'] = "New Managed Access User created";
-      $message['body'][] = "A new Managed Access User has been created at {$base_url}:<br/>";
-      $message['body'][] = "Name: {$ma_user->name}<br/>";
-      $message['body'][] = "Affiliated Institution: {$ma_user->institution}<br/>";
-      $message['body'][] = "Request Information: {$ma_user->request_info}<br/>";
-      $message['body'][] = "<br/><a href='{$base_url}/admin/islandora/tools/managed_access/profiles/manage/{$ma_user->id}'>View Managed Access User</a>";
+      $message['body'][] = "<p>A new Managed Access User has been created at {$base_url}:</p><br/><ul>";
+      $message['body'][] = "<li>Name: {$ma_user->name}</li><br/>";
+      $message['body'][] = "<li>Affiliated Institution: {$ma_user->institution}</li><br/>";
+      $message['body'][] = "<li>Request Information: {$ma_user->request_info}</li><br/>";
+      $message['body'][] = "</ul><br/><a href='{$base_url}/admin/islandora/tools/managed_access/profiles/manage/{$ma_user->id}'>View Managed Access User</a>";
       break;
 
     case 'notify_inactive_new_user':
