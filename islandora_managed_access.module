@@ -172,7 +172,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['subject'] = "Your user account has been activated";
       $message['body'][] = "Hello, {$ma_user->name}:";
       $message['body'][] = "";
-      $message['body'][] = "A new account with the user name '{$drupal_user->name}' has been created for you at {$base_url}. To log in, please go to <a href=\"{$base_url}/user\">{$base_url}/user</a> and request a new password using either this email address or the provided user name. Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
+      $message['body'][] = "Your request for an account on {$base_url} has been approved, you will recieve an email with instructions on how to log in shortly. Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
       break;
 
     case 'notify_user_deactivated':
@@ -199,18 +199,6 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials will automatically expire in 7 days.";
       $message['body'][] = "Please contact {$params['contact_email']} for more information.";
       break;
-
-    case 'delete_user':
-      global $base_url;
-
-      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
-      $message['subject'] = "Your account has been deleted";
-      $message['body'][] = "Hello, {$params['real_name']}:";
-      $message['body'][] = "";
-      $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials has expired.";
-      $message['body'][] = "Please contact {$params['contact_email']} for more information.";
-      break;
-
   }
 }
 
