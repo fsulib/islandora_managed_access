@@ -267,7 +267,7 @@ function islandora_managed_access_islandora_view_object($object) {
       $allowed_rids = array($admin_rid, $ma_profile_rid);
       $user_rids = array_keys($GLOBALS['user']->roles);
       if (count(array_intersect($allowed_rids, $user_rids)) < 1) {
-        drupal_goto("/managed-access/$ma_profile->mname");
+        drupal_goto("/managed-access/{$ma_profile->mname}", array('query' => array('pid' => $object->id)));
       }
     }
   }
@@ -337,8 +337,9 @@ function islandora_managed_access_soft403($profile_mname = FALSE) {
   }
 
   $message = islandora_managed_access_info_message($ma_profile);
+  $pid = $_GET['pid'];
   $message .= <<<EOQ
-<a href="/register-user/$ma_profile->mname">
+<a href="/register-user/{$ma_profile->mname}">
   <button>Register for access to $ma_profile->hname materials</button>
 </a><br/><br/>
 <a href="/user">
@@ -401,10 +402,14 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   <input type="tel" name="phone" id="phone"><br/><br/>
 
   <label for="addr">Address <span style="color:red">*</span></label>
-  <input type="text" name="addr" id="addr"><br/><br/>
+  <textarea rows="4" cols="50" name="addr" id="addr"></textarea><br/><br/>
 
   <label for="req">Reason for Request for Access <span style="color:red">*</span></label>
-  <textarea rows="4" cols="50" name="req" id="req"></textarea><br/><br/>
+  <input type="radio" name="req" value="Class Assignment"> Class Assignment<br/>
+  <input type="radio" name="req" value="Thesis/Dissertation Research"> Thesis/Dissertation Research<br>
+  <input type="radio" name="req" value="Article/Book Research"> Article/Book Research<br/>  
+  <input type="radio" name="req" value="Work-Related Reason"> Work-Related Reason<br/>  
+  <input type="radio" name="req" value="Personal Interest"> Personal Interest<br/><br/>
 
   <div title="$ma_profile->usage_info">
     <input type="checkbox" required>I have read and agree to the terms of use (view on hover).<br/><br/>
@@ -443,7 +448,7 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   <li>Username: {$user_info['drupal_user']->name}</li>
   <li>Password: {$user_info['password']}</li>
 </ul>
-Your login information has also been sent to the email specified in the registration form. Please contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
+Your login information has also been sent to the email specified in the registration form (check your spam/junk folder if you don't see it in your inbox). Please contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 <a href="/user">
   <button>Log In</button>
 </a>

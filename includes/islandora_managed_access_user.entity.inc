@@ -17,7 +17,10 @@ class IslandoraManagedAccessUserEntity extends Entity {
 class IslandoraManagedAccessUserEntityController extends EntityAPIController {
   public static function save_new_ma_user($ma_user, $ma_profile, $email) {
     $role = user_role_load($ma_profile->rid);
-    $username = $ma_profile->mname . "_user_" . time() . "_" . rand(1000, 9999); 
+    //$username = $ma_profile->mname . "_user_" . time() . "_" . rand(1000, 9999); 
+    $username = str_replace(" ", "", $ma_user->name); 
+    $username = str_replace(".", "", $username); 
+    $username = $username . time(); 
     $password = uniqid() . rand(100000000000, 999999999999);
     $fields = array(
       'name' => $username,
