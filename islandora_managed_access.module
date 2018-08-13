@@ -412,7 +412,7 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   <input type="radio" name="req" value="Personal Interest"> Personal Interest<br/><br/>
 
   <div title="$ma_profile->usage_info">
-    <input type="checkbox" required>I have read and agree to the terms of use (view on hover).<br/><br/>
+    <input type="checkbox" required> I have read and agree to the terms of use (view on hover).<br/><br/>
   </div>
   <input type="submit" value="Submit">
 </form>
