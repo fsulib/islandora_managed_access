@@ -309,8 +309,7 @@ function islandora_managed_access_get_object_profile($object) {
 
 function islandora_managed_access_info_message($ma_profile) {
   $message = <<<EOM
-<h1>This record has certain access restrictions:</h1>
-<h2>Justification:</h2>
+<h1>This item has access restrictions:</h1>
 <p>{$ma_profile->justification_info}</p>
 <h2>Usage Information:</h2>
 <p>{$ma_profile->usage_info}</p>
@@ -341,7 +340,11 @@ function islandora_managed_access_soft403($profile_mname = FALSE) {
   $message .= <<<EOQ
 <a href="/register-user/$ma_profile->mname">
   <button>Register for access to $ma_profile->hname materials</button>
+</a><br/><br/>
+<a href="/user">
+  <button>Log in with existing account</button>
 </a>
+
 EOQ;
   return $message;
 }
@@ -384,13 +387,28 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
   $message = <<<EOQ
 <form action="/registration-success/$ma_profile->mname" method="post">
-  <input type="text" name="name" placeholder="Name"><br/>
-  <input type="email" name="mail" placeholder="Email"><br/>
-  <input type="text" name="inst" placeholder="Institution"><br/>
-  <input type="tel" name="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" title="XXX-XXX-XXXX" placeholder="Phone # (XXX-XXX-XXXX)"><br/>
-  <input type="text" name="addr" placeholder="Address"><br/>
-  <textarea rows="4" cols="50" name="req" placeholder="Request"></textarea><br/><br/>
-  <input type="checkbox" required> I have read and agree to the terms of use.<br/><br/>
+
+  <label for="name">Name <span style="color:red">*</span></label>
+  <input type="text" name="name" id="name" required><br/><br/>
+
+  <label for="mail">Mail <span style="color:red">*</span></label>
+  <input type="email" name="mail" id="mail"><br/><br/>
+
+  <label for="inst">Institution <span style="color:red">*</span></label>
+  <input type="text" name="inst" id="inst"><br/><br/>
+
+  <label for="phone">Phone # <span style="color:red">*</span></label>
+  <input type="tel" name="phone" id="phone"><br/><br/>
+
+  <label for="addr">Address <span style="color:red">*</span></label>
+  <input type="text" name="addr" id="addr"><br/><br/>
+
+  <label for="req">Reason for Request for Access <span style="color:red">*</span></label>
+  <textarea rows="4" cols="50" name="req" id="req"></textarea><br/><br/>
+
+  <div title="$ma_profile->usage_info">
+    <input type="checkbox" required>I have read and agree to the terms of use (view on hover).<br/><br/>
+  </div>
   <input type="submit" value="Submit">
 </form>
 EOQ;
