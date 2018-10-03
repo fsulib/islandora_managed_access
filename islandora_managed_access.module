@@ -159,7 +159,11 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['subject'] = "Your user account request has been recieved";
       $message['body'][] = "Hello, {$ma_user->name},";
       $message['body'][] = "";
-      $message['body'][] = "Your request for a user account has been recieved. Please monitor this email account for your credentials once your account has been approved, and contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
+      $message['body'][] = "Your request for a user account has been recieved";
+      $message['body'][] = "";
+      $message['body'][] = "{$ma_profile->review_statement}";
+      $message['body'][] = "";
+      $message['body'][] = "Please monitor this email account for your credentials once your account has been approved, and contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
       $message['body'][] = "";
       $message['body'][] = "{$ma_profile->signature}";
       break;
@@ -465,7 +469,11 @@ EOQ;
   else {
     $message = <<<EOQ
 <p>Thank you for registering, {$_POST['name']}!</p>
-<p>Site administrators will review your request for access shortly. Please monitor the provided email account (<a href='mailto:{$_POST['mail']}'>{$_POST['mail']}</a>) for a message with your credentials once you have been approved. Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
+<p>You have registered to view materials that are restricted for the following reasons:</p>
+<p>{$ma_profile->justification_info}</p>
+<p>{$ma_profile->review_statement}</p>
+<p>Please monitor the provided email account (<a href='mailto:{$_POST['mail']}'>{$_POST['mail']}</a>, check your spam/junk folder if you don't see it in your inbox) for a message with next steps.</p> 
+<p>Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 EOQ;
   }
 
