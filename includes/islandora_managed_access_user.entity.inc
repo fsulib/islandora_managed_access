@@ -71,7 +71,7 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
     $ma_user->active = 0;
     $params = array('ma_user_id' => $ma_user->id);
     $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
-    drupal_mail('islandora_managed_access', 'notify_user_deactivated', $drupal_user->mail, language_default(), $params, $ma_profile->contact_email, TRUE);
+    drupal_mail('islandora_managed_access', 'notify_user_expiry', $drupal_user->mail, language_default(), $params, $ma_profile->contact_email, TRUE);
   }
 
   public static function get_profile_of_ma_user($ma_user) {
