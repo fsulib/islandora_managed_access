@@ -466,14 +466,16 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   $user_info = IslandoraManagedAccessUserEntityController::save_new_ma_user($ma_user, $ma_profile, $_POST['mail']);
 
   if ($ma_user->active == 1) {
+    $validity = ($ma_profile->lifetime == 0 ? "indefinitely" : "for the next {$ma_profile->lifetime} days");
     $message = <<<EOQ
 <p>Thank you for registering, {$_POST['name']}!</p>
-<p>You will now be able to log in and view the {$ma_profile->hname} materials using the following credentials:<br/>
+<p>You will now be able to log in and view the {$ma_profile->hname} materials using the following credentials:</p>
 <ul>
   <li>Username: {$user_info['drupal_user']->name}</li>
   <li>Password: {$user_info['password']}</li>
 </ul>
-Your login information has also been sent to the email specified in the registration form (check your spam/junk folder if you don't see it in your inbox). Please contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
+<p>Your login information has also been sent to the email specified in the registration form (check your spam/junk folder if you don't see it in your inbox).</p>
+<p>Please contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 <a href="/user">
   <button>Log In</button>
 </a>
@@ -485,6 +487,7 @@ EOQ;
 <p>You have registered to view materials that are restricted for the following reasons:</p>
 <p>{$ma_profile->justification_info}</p>
 <p>{$ma_profile->review_statement}</p>
+<p>Your credentials will be valid {$validity}.</p>
 <p>Please monitor the provided email account (<a href='mailto:{$_POST['mail']}'>{$_POST['mail']}</a>, check your spam/junk folder if you don't see it in your inbox) for a message with next steps.</p> 
 <p>Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 EOQ;
