@@ -227,9 +227,18 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
     return array();
   }
   else {
-    $refreshed_date = isset($user->refreshed_at) ? date('M d, Y', $user->refreshed_at) : FALSE;
-    $form['refresh_display'] = array(
+    $form['refreshment'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('User Refreshment'),
+    );
+    $refreshed_date = isset($user->refreshed_at) ? date('M d, Y @ h:i:sA', $user->refreshed_at) : FALSE;
+    $form['refreshment']['refresh_display'] = array(
       '#markup' => isset($user->refreshed_at) ? "<p>Last refreshed at: {$refreshed_date}</p>" : '',
+    );
+    $form['refreshment']['refresh_button'] = array(
+      '#type' => 'submit',
+      '#name' => 'refreshManagedAccessUser',
+      '#default_value' => t('Refresh this user'),
     );
     $form['name'] = array(
       '#title' => t('Name'),
@@ -284,7 +293,7 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
     $form['request_info'] = array(
       '#title' => t('Request Information'),
       '#description' => t('Reason why user wants to access managed access objects.'),
-      '#type' => 'textarea',
+      '#type' => 'textfield',
       '#default_value' => isset($user->request_info) ? $user->request_info : '',
       '#required' => TRUE,
     );
@@ -307,46 +316,55 @@ function islandora_managed_access_user_form_validate($form, &$form_state) {
   if (isset($form_state['values']['email']) && !valid_email_address($form_state['values']['email'])) {
     form_set_error('email', "\"{$form_state['values']['email']}\" is not a valid email address.");
   }
-  if (isset($form_state['values']['phone']) && !preg_match('/^[0-9]{3}-[0-9]{3}-[0-9]{4}$/', $form_state['values']['phone'])) {
-    form_set_error('phone', "\"{$form_state['values']['phone']}\" is not in 'XXX-XXX-XXXX' format.");
-  }
 }
 
 function islandora_managed_access_user_form_submit($form, &$form_state) {
-  if ($form['hidden_id']['#value'] != FALSE) {
-    $old_user_entity = entity_load("islandora_managed_access_user", array($form['hidden_id']['#value']));
-    $old_activity_value = $old_user_entity["{$form['hidden_id']['#value']}"]->active; 
-    $new_activity_value = $form['active']['#value']; 
-    if ($old_activity_value != $new_activity_value) {
-      if ($old_activity_value == 1 && $new_activity_value == 0) {
-        $activity_delta = "deactivated";
+
+
+
+  $button = $form_state['triggering_element']['#id'];
+  switch ($button) {
+    case 'edit-refresh-button':
+      $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
+      $user_entity->refreshed_at = time();
+      $user_entity->save();
+      drupal_set_message(t('@name has been refreshed.', array('@name' => $user_entity->name)));
+      $form_state['redirect'] = '/admin/islandora/tools/managed_access/users/manage/' . $user_entity->id;
+      break;
+
+    case 'edit-submit':
+      if ($form['hidden_id']['#value'] != FALSE) {
+        $old_user_entity = entity_load("islandora_managed_access_user", array($form['hidden_id']['#value']));
+        $old_activity_value = $old_user_entity["{$form['hidden_id']['#value']}"]->active; 
+        $new_activity_value = $form['active']['#value']; 
+        if ($old_activity_value != $new_activity_value) {
+          if ($old_activity_value == 1 && $new_activity_value == 0) {
+            $activity_delta = "deactivated";
+          }
+          if ($old_activity_value == 0 && $new_activity_value == 1) {
+            $activity_delta = "activated";
+          }
+        }
       }
-      if ($old_activity_value == 0 && $new_activity_value == 1) {
-        $activity_delta = "activated";
+      $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
+      if (!isset($user_entity->id)) { 
+        $profile_id = $form['profile']['#value'];
+        $profile_entity = entity_load('islandora_managed_access_profile', array($profile_id)); 
+        IslandoraManagedAccessUserEntityController::save_new_ma_user($user_entity, $profile_entity[$profile_id], $form['email']['#value']);
+      } 
+      else {
+        $user_entity->save();
       }
-    }
+      if (isset($activity_delta)) {
+        if ($activity_delta == 'activated') {
+          IslandoraManagedAccessUserEntityController::activate_ma_user($user_entity);
+        }
+        if ($activity_delta == 'deactivated') {
+          IslandoraManagedAccessUserEntityController::deactivate_ma_user($user_entity);
+        }
+      }
+      drupal_set_message(t('@name has been saved.', array('@name' => $user_entity->name)));
+      $form_state['redirect'] = 'admin/islandora/tools/managed_access/users';
+      break;
   }
-
-  $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
-  if (!isset($user_entity->id)) { 
-    $profile_id = $form['profile']['#value'];
-    $profile_entity = entity_load('islandora_managed_access_profile', array($profile_id)); 
-    IslandoraManagedAccessUserEntityController::save_new_ma_user($user_entity, $profile_entity[$profile_id], $form['email']['#value']);
-  } 
-  else {
-    $user_entity->refreshed_at = time();
-    $user_entity->save();
-  }
-
-  if (isset($activity_delta)) {
-    if ($activity_delta == 'activated') {
-      IslandoraManagedAccessUserEntityController::activate_ma_user($user_entity);
-    }
-    if ($activity_delta == 'deactivated') {
-      IslandoraManagedAccessUserEntityController::deactivate_ma_user($user_entity);
-    }
-  }
-
-  drupal_set_message(t('@name has been saved.', array('@name' => $user_entity->name)));
-  $form_state['redirect'] = 'admin/islandora/tools/managed_access/users';
 }
