@@ -63,6 +63,12 @@ function islandora_managed_access_schema() {
         'type' => 'int',
         'not null' => FALSE,
       ),
+      'review_statement' => array(
+        'description' => 'Blurb about how long it will take to review requests',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
       'contact_email' => array(
         'description' => 'Email address of profile point of contact',
         'type' => 'text',
@@ -82,6 +88,12 @@ function islandora_managed_access_schema() {
       ),
       'contact_info' => array(
         'description' => 'Blurb explainining how to get more information',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'signature' => array(
+        'description' => 'Signature added to outgoing emails.',
         'type' => 'text',
         'size' => 'big',
         'not null' => TRUE,

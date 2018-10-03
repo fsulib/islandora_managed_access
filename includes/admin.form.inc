@@ -49,10 +49,23 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
   $form['user_active_by_default'] = array(
     '#title' => t('User active by default?'),
     '#type' => 'checkbox',
-    '#default_value' => isset($profile->user_active_by_default) ? $profile->user_active_by_default : FALSE,
+    '#default_value' => isset($profile->user_active_by_default) ? $profile->user_active_by_default : TRUE,
     '#description' => t('Check if you want users who register for objects managed by this profile to have user accounts created automatically.'),
     '#required' => FALSE,
   );
+  $form['review_statement'] = array(
+    '#title' => t('Review statement'),
+    '#type' => 'textarea',
+    '#default_value' => isset($profile->review_statement) ? $profile->review_statement : FALSE,
+    '#description' => t('A statement for the user about how long it will take to review their request.'),
+    '#required' => FALSE,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="user_active_by_default"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+
   $form['contact_email'] = array(
     '#title' => t('Contact email'),
     '#type' => 'textfield',
@@ -79,6 +92,13 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#type' => 'textarea',
     '#default_value' => isset($profile->contact_info) ? $profile->contact_info : '',
     '#description' => t('Information displayed to the user about who to contact if they have questions.'),
+    '#required' => TRUE,
+  );
+  $form['signature'] = array(
+    '#title' => t('Outgoing email signature'),
+    '#type' => 'textarea',
+    '#default_value' => isset($profile->signature) ? $profile->signature : '',
+    '#description' => t('A signature displayed in the footer of emails to managed access users'),
     '#required' => TRUE,
   );
   $form['actions'] = array(

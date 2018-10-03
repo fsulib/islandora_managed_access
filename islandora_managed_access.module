@@ -144,6 +144,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['body'][] = "A new Managed Access User has been created at {$base_url}:";
       $message['body'][] = "Name: {$ma_user->name}";
       $message['body'][] = "Affiliated Institution: {$ma_user->institution}";
+      $message['body'][] = "Requested Profile: {$ma_profile->hname}";
       $message['body'][] = "Request Information: {$ma_user->request_info}";
       break;
 
