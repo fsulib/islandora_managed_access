@@ -42,7 +42,7 @@ function islandora_managed_access_menu() {
   );
   
   $items['islandora/object/%islandora_object/access_info'] = array(
-    'title' => 'Access Info',
+    'title' => 'Terms of Use',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'islandora_managed_access_info_tab',
     'page arguments' => array(2),
@@ -203,7 +203,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['body'][] = "";
       $message['body'][] = "Your account at {$base_url} with the user name '{$drupal_user->name}' has been deactivated. The time period for registered access has passed and we did not receive a renewal request.";  
       $message['body'][] = "";
-      $message['body'][] = "If you still require access to the {$ma_profile->hname']}, you will need to re-register for an account with {$base_url}/{$ma_profile->mname}/register.";
+      $message['body'][] = "If you still require access to the {$ma_profile->hname}, you will need to re-register for an account with {$base_url}/{$ma_profile->mname}/register.";
       $message['body'][] = "";
       $message['body'][] = "Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
       $message['body'][] = "";
@@ -435,10 +435,8 @@ function islandora_managed_access_register_user($ma_profile_mname) {
   <input type="radio" name="req" value="Article/Book Research"> Article/Book Research<br/>  
   <input type="radio" name="req" value="Work-Related Reason"> Work-Related Reason<br/>  
   <input type="radio" name="req" value="Personal Interest"> Personal Interest<br/><br/>
-
-  <div title="$ma_profile->usage_info">
-    <input type="checkbox" required> I have read and agree to the terms of use (view on hover).<br/><br/>
-  </div>
+  <input type="checkbox" required> I have read and agree to the following terms of use:
+  <blockquote>{$ma_profile->usage_info}</blockquote>
   <input type="submit" value="Submit">
 </form>
 EOQ;
