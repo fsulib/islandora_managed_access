@@ -139,7 +139,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
       $drupal_user = user_load($ma_user->uid);
 
-      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "New Managed Access User created";
       $message['body'][] = "A new Managed Access User has been created at {$base_url}:";
       $message['body'][] = "Name: {$ma_user->name}";
@@ -155,16 +155,12 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
       $drupal_user = user_load($ma_user->uid);
 
-      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "Your user account request has been received";
       $message['body'][] = "Hello, {$ma_user->name},";
-      $message['body'][] = "";
       $message['body'][] = "Thank you for registering. Your request for a user account to access {$ma_profile->hname} materials at {$base_url} has been received.";
-      $message['body'][] = "";
       $message['body'][] = "{$ma_profile->review_statement}";
-      $message['body'][] = "";
       $message['body'][] = "Please monitor this email account for your credentials once your account has been approved, and contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
-      $message['body'][] = "";
       $message['body'][] = "{$ma_profile->signature}";
       break;
 
@@ -175,18 +171,13 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
       $drupal_user = user_load($ma_user->uid);
 
-      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "Your user account has been activated";
       $message['body'][] = "Hello, {$ma_user->name}:";
-      $message['body'][] = "";
       $message['body'][] = "Thank you for registering. Your request for an account to access {$ma_profile->hname} materials at {$base_url} has been approved.";
-      $message['body'][] = "";
       $message['body'][] = "Your username is: {$drupal_user->name}";
-      $message['body'][] = "";
       $message['body'][] = "You will recieve an email with instructions for initial log-in. After logging in, you will be prompted to change your password.";
-      $message['body'][] = "";
       $message['body'][] = "Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
-      $message['body'][] = "";
       $message['body'][] = "{$ma_profile->signature}";
       break;
 
@@ -197,31 +188,23 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
       $drupal_user = user_load($ma_user->uid);
 
-      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "Your account has been deactivated";
       $message['body'][] = "Hello, {$ma_user->name}:";
-      $message['body'][] = "";
       $message['body'][] = "Your account at {$base_url} with the user name '{$drupal_user->name}' has been deactivated. The time period for registered access has passed and we did not receive a renewal request.";  
-      $message['body'][] = "";
       $message['body'][] = "If you still require access to the {$ma_profile->hname}, you will need to re-register for an account with {$base_url}/{$ma_profile->mname}/register.";
-      $message['body'][] = "";
       $message['body'][] = "Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
-      $message['body'][] = "";
       $message['body'][] = "{$ma_profile->signature}";
       break;
 
     case 'notify_user_expiry_warning':
       global $base_url;
-      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "Your account will soon expire";
       $message['body'][] = "Hello, {$params['real_name']}:";
-      $message['body'][] = "";
       $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials will automatically expire in 7 days.";
-      $message['body'][] = "";
       $message['body'][] = "To renew your access, please the administrator for this collection at {$params['contact_email']}.";
-      $message['body'][] = "";
       $message['body'][] = "If you choose not to renewe your account now, you will be able to re-register at a later date if needed.";
-      $message['body'][] = "";
       $message['body'][] = "{$ma_profile->signature}";
       break;
   }
