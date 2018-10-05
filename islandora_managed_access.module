@@ -223,12 +223,11 @@ function islandora_managed_access_cron() {
     $lifetime = $ma_profile->lifetime;
     $expiry_fmt = "+{$lifetime} days";
     $expiry = strtotime($expiry_fmt, $user->refreshed_at);
-    $warning_start = strtotime('-7 days', $expiry);
-    $warning_stop = strtotime('-6 days', $expiry);
+    $warning_time = strtotime('-7 days', $expiry);
     if ($lifetime == 0) {
       break;
     }
-    elseif ($now > $warning_start && $now < $warning_stop) {
+    elseif ($now > $warning_time && $user->warned == 0) {
       watchdog("islandora_managed_access", "Warning managed access user '{$user->name}.'"); 
       $params = array(
         'real_name' => $user->name,
@@ -238,6 +237,8 @@ function islandora_managed_access_cron() {
       $email = $drupal_user->mail;
       $from = variable_get('site_mail', 'admin@example.com');
       drupal_mail('islandora_managed_access', 'notify_user_expiry_warning', $email, language_default(), $params, $from, TRUE);
+      $user->warned = 1;
+      $user->save();
     }
     elseif ($now > $expiry) {
       watchdog("islandora_managed_access", "Expiring managed access user '{$user->name}.'"); 

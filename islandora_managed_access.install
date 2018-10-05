@@ -172,6 +172,11 @@ function islandora_managed_access_schema() {
         'type' => 'int',
         'not null' => TRUE,
       ),
+      'warned' => array(
+        'description' => 'Whether or not the user has been warned of their impending expiration',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
       'active' => array(
         'description' => 'Whether or not the user is active',
         'type' => 'int',

@@ -33,6 +33,7 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
     );
     $account = user_save(NULL, $fields);
     $ma_user->uid = $account->uid;
+    $ma_user->warned = 0;
     $ma_user->save();
 
     $params = array(

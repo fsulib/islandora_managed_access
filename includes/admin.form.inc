@@ -327,6 +327,7 @@ function islandora_managed_access_user_form_submit($form, &$form_state) {
     case 'edit-refresh-button':
       $user_entity = entity_ui_form_submit_build_entity($form, $form_state);
       $user_entity->refreshed_at = time();
+      $user_entity->warned = 0;
       $user_entity->save();
       drupal_set_message(t('@name has been refreshed.', array('@name' => $user_entity->name)));
       $form_state['redirect'] = '/admin/islandora/tools/managed_access/users/manage/' . $user_entity->id;
