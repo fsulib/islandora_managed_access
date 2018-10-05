@@ -146,6 +146,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['body'][] = "Affiliated Institution: {$ma_user->institution}";
       $message['body'][] = "Requested Profile: {$ma_profile->hname}";
       $message['body'][] = "Request Information: {$ma_user->request_info}";
+      $message['body'][] = "Object requested: {$ma_user->pid}";
       break;
 
     case 'notify_inactive_new_user':
@@ -175,6 +176,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['subject'] = "Your user account has been activated";
       $message['body'][] = "Hello, {$ma_user->name}:";
       $message['body'][] = "Thank you for registering. Your request for an account to access {$ma_profile->hname} materials at {$base_url} has been approved.";
+      $message['body'][] = "The object you registered to view is: {$base_url}/islandora/object/{$ma_user->pid}";
       $message['body'][] = "Your username is: {$drupal_user->name}";
       $message['body'][] = "You will recieve an email with instructions for initial log-in. After logging in, you will be prompted to change your password.";
       $message['body'][] = "Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
@@ -460,6 +462,7 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   <li>Username: {$user_info['drupal_user']->name}</li>
   <li>Password: {$user_info['password']}</li>
 </ul>
+<p>After logging in, you will be able to access {$base_url}/islandora/object/{$ma_user->pid}</p>
 <p>Your login information has also been sent to the email specified in the registration form (check your spam/junk folder if you don't see it in your inbox).</p>
 <p>Please contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 <a href="/user">
