@@ -242,7 +242,7 @@ function islandora_managed_access_cron() {
     }
     elseif ($now > $expiry) {
       watchdog("islandora_managed_access", "Expiring managed access user '{$user->name}.'"); 
-      IslandoraManagedAccessUserEntityController::deactivate_ma_user($user);
+      IslandoraManagedAccessUserEntityController::expire_ma_user($user);
     }
   }
 }

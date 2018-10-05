@@ -39,6 +39,13 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
     '#description' => t('The number of days before a user loses access. Set to 0 for no expiration.'),
     '#required' => TRUE,
   );
+  $form['expiry_deletion'] = array(
+    '#title' => t('Delete user data on expiration?'),
+    '#type' => 'checkbox',
+    '#default_value' => isset($profile->expiry_deletion) ? $profile->expiry_deletion : FALSE,
+    '#description' => t('Check if you want user data to be purged from the system automatically when a user has expired.'),
+    '#required' => FALSE,
+  );
   $form['ip_whitelist'] = array(
     '#title' => t('IP Whitelist'),
     '#type' => 'textfield',
@@ -65,7 +72,6 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
       ),
     ),
   );
-
   $form['contact_email'] = array(
     '#title' => t('Contact email'),
     '#type' => 'textfield',
@@ -231,9 +237,14 @@ function islandora_managed_access_user_form($form, &$form_state, $user = NULL) {
       '#type' => 'fieldset',
       '#title' => t('User Refreshment'),
     );
+    $created_date = isset($user->created_at) ? date('M d, Y @ h:i:sA', $user->created_at) : FALSE;
     $refreshed_date = isset($user->refreshed_at) ? date('M d, Y @ h:i:sA', $user->refreshed_at) : FALSE;
+    $created_date = isset($user->created_at) ? date('M d, Y @ h:i:sA', $user->created_at) : FALSE;
+    $form['refreshment']['created_display'] = array(
+      '#markup' => isset($user->created_at) ? "<p><b>Created:</b> {$created_date}</p>" : '',
+    );
     $form['refreshment']['refresh_display'] = array(
-      '#markup' => isset($user->refreshed_at) ? "<p>Last refreshed at: {$refreshed_date}</p>" : '',
+      '#markup' => isset($user->refreshed_at) ? "<p><b>Refreshed:</b> {$refreshed_date}</p>" : '',
     );
     $form['refreshment']['refresh_button'] = array(
       '#type' => 'submit',

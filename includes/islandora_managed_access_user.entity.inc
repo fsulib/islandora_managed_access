@@ -65,11 +65,17 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
     drupal_mail('islandora_managed_access', 'notify_user_activated', $drupal_user->mail, language_default(), $params, $ma_profile->contact_email, TRUE);
   }
 
-  public static function deactivate_ma_user($ma_user) {
-    watchdog("Islandora Managed Access", "Managed Access User '{$ma_user->name}' deactivated.");
+  public static function expire_ma_user($ma_user) {
+    watchdog("Islandora Managed Access", "Managed Access User '{$ma_user->name}' expired.");
+    $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
     $drupal_user = user_load($ma_user->uid);
-    user_save($drupal_user, array('status' => 0));
-    $ma_user->active = 0;
+    if ($ma_profile->expiry_deletion == 1) {
+      IslandoraManagedAccessUserEntityController::delete(array($ma_user->id));
+    }
+    else {
+      $ma_user->active = 0;
+    }
+    user_delete(intval($user->uid));
     $params = array('ma_user_id' => $ma_user->id);
     $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
     drupal_mail('islandora_managed_access', 'notify_user_expiry', $drupal_user->mail, language_default(), $params, $ma_profile->contact_email, TRUE);
@@ -99,14 +105,6 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
   public function delete($ids) {
     $users = entity_load('islandora_managed_access_user', $ids);
     foreach ($users as $user) {
-      $ma_profile = islandora_managed_access_get_users_profile($user);
-      $drupal_user = user_load($user->uid);
-      $params = array(
-        'real_name' => $user->name,
-        'profile_name' => $ma_profile->hname,
-        'contact' => $ma_profile->contact_info,
-      );
-      user_delete(intval($user->uid)); 
       db_delete('islandora_managed_access_user')->condition('id', $user->id)->execute();
     }
   }
