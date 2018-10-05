@@ -348,7 +348,7 @@ function islandora_managed_access_soft403($profile_mname = FALSE) {
   $message = islandora_managed_access_info_message($ma_profile);
   $pid = $_GET['pid'];
   $message .= <<<EOQ
-<a href="/register-user/{$ma_profile->mname}">
+<a href="/register-user/{$ma_profile->mname}?pid={$pid}">
   <button>Register for access to $ma_profile->hname materials</button>
 </a><br/><br/>
 <a href="/user">
@@ -394,9 +394,12 @@ function islandora_managed_access_get_users_profile($ma_user) {
 }
 
 function islandora_managed_access_register_user($ma_profile_mname) {
+  $pid = $_GET['pid'];
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
   $message = <<<EOQ
 <form action="/registration-success/$ma_profile->mname" method="post">
+
+  <input type="hidden" id="pid" name="pid" value="{$pid}">
 
   <label for="name">Name <span style="color:red">*</span></label>
   <input type="text" name="name" id="name" required><br/><br/>
@@ -443,6 +446,7 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   $ma_user->phone = $_POST['phone'];
   $ma_user->address = $_POST['addr'];
   $ma_user->request_info = $_POST['req'];
+  $ma_user->pid = $_POST['pid'];
   $ma_user->active = $ma_profile->user_active_by_default;
   
   $user_info = IslandoraManagedAccessUserEntityController::save_new_ma_user($ma_user, $ma_profile, $_POST['mail']);

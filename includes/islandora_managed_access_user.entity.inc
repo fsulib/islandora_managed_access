@@ -158,11 +158,11 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
       $profile = $profile_obj[(int)$profile_id]->hname;
       $activity = ($entity->active == 1 ? "Yes" : "No");
       
-      $additional_cols = array($profile, $activity, $entity->name, user_load($entity->uid)->mail, $entity->institution, date('M d, Y', $entity->created_at));
+      $additional_cols = array($profile, $activity, date('M d, Y', $entity->created_at), date('M d, Y', $entity->refreshed_at), $entity->pid, $entity->name, user_load($entity->uid)->mail, $entity->institution);
       $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
     }
 
-    $additional_headers = array('Profile', 'Active', 'Name', 'Email', 'Institution', 'Created');
+    $additional_headers = array('Profile', 'Active', 'Created', 'Refreshed', 'Origin', 'Name', 'Email', 'Institution');
     $render = array(
       '#theme' => 'table',
       '#header' => $this->overviewTableHeaders($conditions, $rows, $additional_headers),
