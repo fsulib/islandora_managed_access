@@ -150,7 +150,6 @@ function islandora_managed_access_mail($key, &$message, $params) {
       break;
 
     case 'notify_inactive_new_user':
-      global $base_url;
       $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
       $ma_user = $ma_user_array["{$params['ma_user_id']}"];
       $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
@@ -439,9 +438,9 @@ EOQ;
 }
 
 function islandora_managed_access_registration_success($ma_profile_mname) {
+  global $base_url;
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
   $role = user_role_load($ma_profile->rid);
-
   $ma_user = entity_create('islandora_managed_access_user', array());
   $ma_user->name = $_POST['name'];
   $ma_user->institution = $_POST['inst'];
@@ -450,7 +449,6 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   $ma_user->request_info = $_POST['req'];
   $ma_user->pid = $_POST['pid'];
   $ma_user->active = $ma_profile->user_active_by_default;
-  
   $user_info = IslandoraManagedAccessUserEntityController::save_new_ma_user($ma_user, $ma_profile, $_POST['mail']);
 
   if ($ma_user->active == 1) {
