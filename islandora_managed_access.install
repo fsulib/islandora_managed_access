@@ -229,29 +229,3 @@ function islandora_managed_access_schema() {
 
   return $schema;
 }
-
-
-/**
- * Implements hook_uninstall().
- */
-function islandora_managed_access_uninstall() {
-
-  // Unmanage any managed objects
-  $objects = entity_load('islandora_managed_access_object');
-  foreach ($objects as $object) {
-    IslandoraManagedAccessObjectEntityController::unmanageMAObject($object);
-  }
-
-  // Get rid of any Drupal users
-  $users = entity_load('islandora_managed_access_user');
-  foreach ($users as $user) {
-    user_delete($user->uid);
-  }
-
-  // Get rid of any Drupal roles
-  $profiles = entity_load('islandora_managed_access_profile');
-  foreach ($profiles as $profile) {
-    user_role_delete($profile->rid);
-  }
-
-}
