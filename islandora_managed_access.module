@@ -146,7 +146,6 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['body'][] = "Affiliated Institution: {$ma_user->institution}";
       $message['body'][] = "Requested Profile: {$ma_profile->hname}";
       $message['body'][] = "Request Information: {$ma_user->request_info}";
-      $message['body'][] = "Object requested: {$ma_user->pid}";
       break;
 
     case 'notify_inactive_new_user':
@@ -175,9 +174,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['subject'] = "Your user account has been activated";
       $message['body'][] = "Hello, {$ma_user->name}:";
       $message['body'][] = "Thank you for registering. Your request for an account to access {$ma_profile->hname} materials at {$base_url} has been approved.";
-      $message['body'][] = "The object you registered to view is: {$base_url}/islandora/object/{$ma_user->pid}";
-      $message['body'][] = "Your username is: {$drupal_user->name}";
-      $message['body'][] = "You will recieve an email with instructions for initial log-in. After logging in, you will be prompted to change your password.";
+      $message['body'][] = "You will recieve an additional email with instructions for initial log-in. After logging in, you will be prompted to change your password.";
       $message['body'][] = "Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.";
       $message['body'][] = "{$ma_profile->signature}";
       break;
@@ -277,7 +274,7 @@ function islandora_managed_access_islandora_view_object($object) {
       $allowed_rids = array($admin_rid, $ma_profile_rid);
       $user_rids = array_keys($GLOBALS['user']->roles);
       if (count(array_intersect($allowed_rids, $user_rids)) < 1) {
-        drupal_goto("/managed-access/{$ma_profile->mname}", array('query' => array('pid' => $object->id)));
+        drupal_goto("/managed-access/{$ma_profile->mname}");
       }
     }
   }
@@ -347,9 +344,8 @@ function islandora_managed_access_soft403($profile_mname = FALSE) {
   }
 
   $message = islandora_managed_access_info_message($ma_profile);
-  $pid = $_GET['pid'];
   $message .= <<<EOQ
-<a href="/register-user/{$ma_profile->mname}?pid={$pid}">
+<a href="/register-user/{$ma_profile->mname}">
   <button>Register for access to $ma_profile->hname materials</button>
 </a><br/><br/>
 <a href="/user">
@@ -395,12 +391,9 @@ function islandora_managed_access_get_users_profile($ma_user) {
 }
 
 function islandora_managed_access_register_user($ma_profile_mname) {
-  $pid = $_GET['pid'];
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
   $message = <<<EOQ
 <form action="/registration-success/$ma_profile->mname" method="post">
-
-  <input type="hidden" id="pid" name="pid" value="{$pid}">
 
   <label for="name">Name <span style="color:red">*</span></label>
   <input type="text" name="name" id="name" required><br/><br/>
@@ -447,7 +440,6 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   $ma_user->phone = $_POST['phone'];
   $ma_user->address = $_POST['addr'];
   $ma_user->request_info = $_POST['req'];
-  $ma_user->pid = $_POST['pid'];
   $ma_user->active = $ma_profile->user_active_by_default;
   $user_info = IslandoraManagedAccessUserEntityController::save_new_ma_user($ma_user, $ma_profile, $_POST['mail']);
 
@@ -455,13 +447,8 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
     $validity = ($ma_profile->lifetime == 0 ? "indefinitely" : "for the next {$ma_profile->lifetime} days");
     $message = <<<EOQ
 <p>Thank you for registering, {$_POST['name']}!</p>
-<p>You will now be able to log in and view the {$ma_profile->hname} materials using the following credentials:</p>
-<ul>
-  <li>Username: {$user_info['drupal_user']->name}</li>
-  <li>Password: {$user_info['password']}</li>
-</ul>
-<p>After logging in, you will be able to access {$base_url}/islandora/object/{$ma_user->pid}</p>
-<p>Your login information has also been sent to the email specified in the registration form (check your spam/junk folder if you don't see it in your inbox).</p>
+<p>Your login information has been sent to the email specified in the registration form (check your spam/junk folder if you don't see it in your inbox).</p>
+<p>Your new credentials will be valid {$validity}.</p>
 <p>Please contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 <a href="/user">
   <button>Log In</button>
@@ -474,7 +461,6 @@ EOQ;
 <p>You have registered to view materials that are restricted for the following reasons:</p>
 <p>{$ma_profile->justification_info}</p>
 <p>{$ma_profile->review_statement}</p>
-<p>Your credentials will be valid {$validity}.</p>
 <p>Please monitor the provided email account (<a href='mailto:{$_POST['mail']}'>{$_POST['mail']}</a>, check your spam/junk folder if you don't see it in your inbox) for a message with next steps.</p> 
 <p>Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 EOQ;

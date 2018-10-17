@@ -187,12 +187,6 @@ function islandora_managed_access_schema() {
         'type' => 'int',
         'not null' => TRUE,
       ),
-      'pid' => array(
-        'description' => 'PID of MA Object user registered to see',
-        'type' => 'varchar',
-        'length' => '255',
-        'not null' => TRUE,
-      ),
       'name' => array(
         'description' => 'Full name of user',
         'type' => 'varchar',

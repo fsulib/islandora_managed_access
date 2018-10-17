@@ -330,9 +330,6 @@ function islandora_managed_access_user_form_validate($form, &$form_state) {
 }
 
 function islandora_managed_access_user_form_submit($form, &$form_state) {
-
-
-
   $button = $form_state['triggering_element']['#id'];
   switch ($button) {
     case 'edit-refresh-button':
