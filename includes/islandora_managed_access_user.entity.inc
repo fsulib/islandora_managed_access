@@ -74,8 +74,9 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
     }
     else {
       $ma_user->active = 0;
+      $drupal_user = user_load($ma_user->uid);
+      user_delete(intval($drupal_user->uid));
     }
-    user_delete(intval($user->uid));
     $params = array('ma_user_id' => $ma_user->id);
     $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
     drupal_mail('islandora_managed_access', 'notify_user_expiry', $drupal_user->mail, language_default(), $params, $ma_profile->contact_email, TRUE);
@@ -106,6 +107,8 @@ class IslandoraManagedAccessUserEntityController extends EntityAPIController {
     $users = entity_load('islandora_managed_access_user', $ids);
     foreach ($users as $user) {
       db_delete('islandora_managed_access_user')->condition('id', $user->id)->execute();
+      $drupal_user = user_load($user->uid);
+      user_delete(intval($drupal_user->uid));
     }
   }
 }
