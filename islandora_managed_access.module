@@ -136,8 +136,8 @@ function islandora_managed_access_mail($key, &$message, $params) {
       global $base_url;
       $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
       $ma_user = $ma_user_array["{$params['ma_user_id']}"];
-      $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
       $drupal_user = user_load($ma_user->uid);
+      $ma_profile = islandora_managed_access_get_users_profile($ma_user);
 
       $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "New Managed Access User created";
@@ -149,10 +149,11 @@ function islandora_managed_access_mail($key, &$message, $params) {
       break;
 
     case 'notify_inactive_new_user':
+      global $base_url;
       $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
       $ma_user = $ma_user_array["{$params['ma_user_id']}"];
-      $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
       $drupal_user = user_load($ma_user->uid);
+      $ma_profile = islandora_managed_access_get_users_profile($ma_user);
 
       $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "Your user account request has been received";
@@ -167,8 +168,8 @@ function islandora_managed_access_mail($key, &$message, $params) {
       global $base_url;
       $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
       $ma_user = $ma_user_array["{$params['ma_user_id']}"];
-      $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
       $drupal_user = user_load($ma_user->uid);
+      $ma_profile = islandora_managed_access_get_users_profile($ma_user);
 
       $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "Your user account has been activated";
@@ -183,8 +184,8 @@ function islandora_managed_access_mail($key, &$message, $params) {
       global $base_url;
       $ma_user_array = entity_load("islandora_managed_access_user", array($params['ma_user_id']));
       $ma_user = $ma_user_array["{$params['ma_user_id']}"];
-      $ma_profile = IslandoraManagedAccessUserEntityController::get_profile_of_ma_user($ma_user);
       $drupal_user = user_load($ma_user->uid);
+      $ma_profile = islandora_managed_access_get_users_profile($ma_user);
 
       $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "Your account has been deactivated";

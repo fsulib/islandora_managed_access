@@ -150,17 +150,9 @@ class IslandoraManagedAccessUserEntityUIController extends EntityDefaultUIContro
     ksort($entities);
     $rows = array();
     foreach ($entities as $entity) {
-
-      $rids = array_keys(user_load($entity->uid)->roles);
-      $rid = array_pop($rids);
-      $query = new EntityFieldQuery();
-      $query->entityCondition('entity_type', 'islandora_managed_access_profile')->propertyCondition('rid', $rid);
-      $results = $query->execute();
-      $profile_id = array_keys($results['islandora_managed_access_profile']);
-      $profile_obj = entity_load('islandora_managed_access_profile', array((int)$profile_id));
-      $profile = $profile_obj[(int)$profile_id]->hname;
+      $ma_profile = islandora_managed_access_get_users_profile($entity);
+      $profile = $ma_profile->hname;
       $activity = ($entity->active == 1 ? "Yes" : "No");
-      
       $additional_cols = array($profile, $activity, date('M d, Y', $entity->created_at), date('M d, Y', $entity->refreshed_at), $entity->name, user_load($entity->uid)->mail, $entity->institution);
       $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity, $additional_cols);
     }
