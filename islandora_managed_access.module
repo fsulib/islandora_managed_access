@@ -203,7 +203,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['body'][] = "Hello, {$params['real_name']}:";
       $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials will automatically expire in 7 days.";
       $message['body'][] = "To renew your access, please the administrator for this collection at {$params['contact_email']}.";
-      $message['body'][] = "If you choose not to renewe your account now, you will be able to re-register at a later date if needed.";
+      $message['body'][] = "If you choose not to renew your account now, you will be able to re-register at a later date if needed.";
       $message['body'][] = "{$ma_profile->signature}";
       break;
   }
