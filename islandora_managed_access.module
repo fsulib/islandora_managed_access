@@ -190,8 +190,8 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['headers']['Content-Type'] = 'text/plain; charset=UTF-8; format=flowed';
       $message['subject'] = "Your account has been deactivated";
       $message['body'][] = "Hello, {$ma_user->name}:";
-      $message['body'][] = "Your account at {$base_url} with the user name '{$drupal_user->name}' has been deactivated. The time period for registered access has passed and we did not receive a renewal request.";  
-      $message['body'][] = "If you still require access to the {$ma_profile->hname}, you will need to re-register for an account with {$base_url}/{$ma_profile->mname}/register.";
+      $message['body'][] = "Your account at {$base_url} for browsing the {$ma_profile->hname} materials has been deactivated. The time period for registered access has passed and we did not receive a renewal request.";  
+      $message['body'][] = "If you still require access to the {$ma_profile->hname}, you will need to re-register for an account at {$base_url}/{$ma_profile->mname}/register.";
       $message['body'][] = "Contact {$ma_profile->contact_email} if you have any questions.";
       $message['body'][] = "{$ma_profile->signature}";
       break;
@@ -202,7 +202,7 @@ function islandora_managed_access_mail($key, &$message, $params) {
       $message['subject'] = "Your account will soon expire";
       $message['body'][] = "Hello, {$params['real_name']}:";
       $message['body'][] = "Your account at {$base_url} for browsing the {$params['profile_name']} materials will automatically expire in 7 days.";
-      $message['body'][] = "To renew your access, please the administrator for this collection at {$params['contact_email']}.";
+      $message['body'][] = "To renew your access, please contact the administrator for this collection at {$params['contact_email']}.";
       $message['body'][] = "If you choose not to renew your account now, you will be able to re-register at a later date if needed.";
       $message['body'][] = "{$ma_profile->signature}";
       break;
