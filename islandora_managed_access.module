@@ -34,10 +34,10 @@ function islandora_managed_access_menu() {
     'menu_name' => FALSE,
   );
 
-  $items['registration-success'] = array(
-    'title' => 'You have successfully registered!',
+  $items['post-registration'] = array(
+    'title' => 'Post Registration',
     'access callback' => TRUE,
-    'page callback' => 'islandora_managed_access_registration_success',
+    'page callback' => 'islandora_managed_access_post_registration',
     'menu_name' => FALSE,
   );
   
@@ -394,7 +394,7 @@ function islandora_managed_access_get_users_profile($ma_user) {
 function islandora_managed_access_register_user($ma_profile_mname) {
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
   $message = <<<EOQ
-<form action="/registration-success/$ma_profile->mname" method="post">
+<form action="/post-registration/$ma_profile->mname" method="post">
 
   <label for="name">Name <span style="color:red">*</span></label>
   <input type="text" name="name" id="name" required><br/><br/>
@@ -431,22 +431,37 @@ EOQ;
   return $content;
 }
 
-function islandora_managed_access_registration_success($ma_profile_mname) {
+function islandora_managed_access_post_registration($ma_profile_mname) {
   global $base_url;
   $ma_profile = islandora_managed_access_get_profile_by_machine_name($ma_profile_mname);
-  $role = user_role_load($ma_profile->rid);
-  $ma_user = entity_create('islandora_managed_access_user', array());
-  $ma_user->name = $_POST['name'];
-  $ma_user->institution = $_POST['inst'];
-  $ma_user->phone = $_POST['phone'];
-  $ma_user->address = $_POST['addr'];
-  $ma_user->request_info = $_POST['req'];
-  $ma_user->active = $ma_profile->user_active_by_default;
-  $user_info = IslandoraManagedAccessUserEntityController::save_new_ma_user($ma_user, $ma_profile, $_POST['mail']);
 
-  if ($ma_user->active == 1) {
-    $validity = ($ma_profile->lifetime == 0 ? "indefinitely" : "for the next {$ma_profile->lifetime} days");
+  if (user_load_by_mail($_POST['mail'])) {
+    drupal_set_title("Error: Submitted email already exists"); 
     $message = <<<EOQ
+<p>The email address that you have submitted is already in use by the system.</p>
+<p>This most likely means that you already have a user account. Please log in using your existing user account instead of creating a new one.</p>
+<p>If you have forgotten your username and/or password, you may request a password reset via email. This will send a one-time login link to your existing email allowing you to login and not only reset your password, but also see your username.</p>
+<p>If you do not already have an existing account and are still having issues registering, please contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> for further support.</p>
+<a href="/user/password?name={$_POST['mail']}">
+  <button>Request Password Reset</button>
+</a>
+EOQ;
+  }
+  else {
+    drupal_set_title("Registration Success!"); 
+    $role = user_role_load($ma_profile->rid);
+    $ma_user = entity_create('islandora_managed_access_user', array());
+    $ma_user->name = $_POST['name'];
+    $ma_user->institution = $_POST['inst'];
+    $ma_user->phone = $_POST['phone'];
+    $ma_user->address = $_POST['addr'];
+    $ma_user->request_info = $_POST['req'];
+    $ma_user->active = $ma_profile->user_active_by_default;
+    $user_info = IslandoraManagedAccessUserEntityController::save_new_ma_user($ma_user, $ma_profile, $_POST['mail']);
+
+    if ($ma_user->active == 1) {
+      $validity = ($ma_profile->lifetime == 0 ? "indefinitely" : "for the next {$ma_profile->lifetime} days");
+      $message = <<<EOQ
 <p>Thank you for registering, {$_POST['name']}!</p>
 <p>Your login information has been sent to the email specified in the registration form (check your spam/junk folder if you don't see it in your inbox).</p>
 <p>Your new credentials will be valid {$validity}.</p>
@@ -455,9 +470,9 @@ function islandora_managed_access_registration_success($ma_profile_mname) {
   <button>Log In</button>
 </a>
 EOQ;
-  }
-  else {
-    $message = <<<EOQ
+    }
+    else {
+      $message = <<<EOQ
 <p>Thank you for registering, {$_POST['name']}!</p>
 <p>You have registered to view materials that are restricted for the following reasons:</p>
 <p>{$ma_profile->justification_info}</p>
@@ -465,6 +480,8 @@ EOQ;
 <p>Please monitor the provided email account (<a href='mailto:{$_POST['mail']}'>{$_POST['mail']}</a>, check your spam/junk folder if you don't see it in your inbox) for a message with next steps.</p> 
 <p>Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 EOQ;
+    }
+
   }
 
   $content['raw_markup'] = array(
