@@ -438,9 +438,8 @@ function islandora_managed_access_post_registration($ma_profile_mname) {
   if (user_load_by_mail($_POST['mail'])) {
     drupal_set_title("Error: Submitted email already exists"); 
     $message = <<<EOQ
-<p>The email address that you have submitted is already in use by the system.</p>
-<p>This most likely means that you already have a user account. Please log in using your existing user account instead of creating a new one.</p>
-<p>If you have forgotten your username and/or password, you may request a password reset via email. This will send a one-time login link to your existing email allowing you to login and not only reset your password, but also see your username.</p>
+<p>The email address that you have submitted is already in use by the system. This most likely means that you already have an account. Please log in using your existing user account instead of creating a new one.</p>
+<p>If you have forgotten your username and/or password, you may request a password reset. This will send a one-time login link to your existing email allowing you to login and not only reset your password, but also see your username.</p>
 <p>If you do not already have an existing account and are still having issues registering, please contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> for further support.</p>
 <a href="/user/password?name={$_POST['mail']}">
   <button>Request Password Reset</button>
@@ -481,7 +480,6 @@ EOQ;
 <p>Contact <a href='mailto:{$ma_profile->contact_email}'>{$ma_profile->contact_email}</a> if you have any questions.</p>
 EOQ;
     }
-
   }
 
   $content['raw_markup'] = array(
