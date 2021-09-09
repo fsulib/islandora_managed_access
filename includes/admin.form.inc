@@ -56,7 +56,7 @@ function islandora_managed_access_profile_form($form, &$form_state, $profile = N
   $form['user_active_by_default'] = array(
     '#title' => t('User active by default?'),
     '#type' => 'checkbox',
-    '#default_value' => isset($profile->user_active_by_default) ? $profile->user_active_by_default : TRUE,
+    '#default_value' => isset($profile->user_active_by_default) ? $profile->user_active_by_default : FALSE,
     '#description' => t('Check if you want users who register for objects managed by this profile to have user accounts created automatically.'),
     '#required' => FALSE,
   );
